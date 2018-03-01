@@ -1,8 +1,10 @@
 package server
 
 import (
+	"github.com/elxirhealth/key/pkg/keyapi"
 	"github.com/elxirhealth/key/pkg/server/storage"
 	"github.com/elxirhealth/service-base/pkg/server"
+	"golang.org/x/net/context"
 )
 
 // Key implements the KeyServer interface.
@@ -31,4 +33,17 @@ func newKey(config *Config) (*Key, error) {
 	}, nil
 }
 
-// TODO implement keyapi.Key endpoints
+// AddPublicKeys adds a set of public keys associated with a given entity.
+func (k *Key) AddPublicKeys(
+	ctx context.Context, rq *keyapi.AddPublicKeysRequest,
+) (*keyapi.AddPublicKeysResponse, error) {
+	panic("implement me")
+}
+
+// GetPublicKeys gets the details (including their associated entity IDs) for a given set of public
+// keys.
+func (k *Key) GetPublicKeys(
+	ctx context.Context, rq *keyapi.GetPublicKeysRequest,
+) (*keyapi.GetPublicKeysResponse, error) {
+	panic("implement me")
+}

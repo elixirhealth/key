@@ -3,5 +3,38 @@ syntax = "proto3";
 package keyapi;
 
 service Key {
-    // TODO
+    rpc AddPublicKeys (AddPublicKeysRequest) returns (AddPublicKeysResponse) {}
+    rpc GetPublicKeys (GetPublicKeysRequest) returns (GetPublicKeysResponse) {}
+
+    // TODO (drausin)
+    // rpc SamplePublicKeys (SamplePublicKeysRequest) returns (SamplePublicKeysResponse) {}
+    // rpc DisablePublicKeys (DisablePublicKeysRequest) returns (DisablePublicKeysResponse) {}
+
+}
+
+message AddPublicKeysRequest {
+    string entity_id = 1;
+    string key_type = 2;
+    repeated bytes public_keys = 3;
+}
+
+message AddPublicKeysResponse {}
+
+message GetPublicKeysRequest {
+    repeated bytes public_keys = 3;
+}
+
+message GetPublicKeysResponse {
+    repeated PublicKeyDetails public_key_details = 1;
+}
+
+message PublicKeyDetails {
+    bytes public_key = 1;
+    string entity_id = 2;
+    KeyType key_type = 3;
+}
+
+enum KeyType {
+    AUTHOR = 0;
+    READER = 1;
 }
