@@ -33,12 +33,15 @@ func newKey(config *Config) (*Key, error) {
 	}, nil
 }
 
+// AddPublicKeys adds a set of public keys associated with a given entity.
 func (k *Key) AddPublicKeys(
 	ctx context.Context, rq *keyapi.AddPublicKeysRequest,
 ) (*keyapi.AddPublicKeysResponse, error) {
 	panic("implement me")
 }
 
+// GetPublicKeys gets the details (including their associated entity IDs) for a given set of public
+// keys.
 func (k *Key) GetPublicKeys(
 	ctx context.Context, rq *keyapi.GetPublicKeysRequest,
 ) (*keyapi.GetPublicKeysResponse, error) {
