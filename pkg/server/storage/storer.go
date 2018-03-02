@@ -1,31 +1,50 @@
 package storage
 
 import (
+	"time"
+
 	api "github.com/elxirhealth/key/pkg/keyapi"
 	bstorage "github.com/elxirhealth/service-base/pkg/server/storage"
 	"go.uber.org/zap/zapcore"
 )
 
-var (
+const (
 	// DefaultType is the default storage type.
 	DefaultType = bstorage.Memory
+
+	// DefaultMaxBatchSize is the maximum size of a batch of public keys.
+	DefaultMaxBatchSize = 64
+
+	// DefaultAddQueryTimeout is the timeout for DataStore queries associated with a Store Add
+	// method.
+	DefaultAddQueryTimeout = 1 * time.Second
+
+	// DefaultGetQueryTimeout is the timeout for DataStore queries associated with a Store Get
+	// method.
+	DefaultGetQueryTimeout = 1 * time.Second
 )
 
-// Storer manages public key details.
+// Storer manages public key publicKey.
 type Storer interface {
-	AddPublicKeys(details []*api.PublicKeyDetails) error
-	GetPublicKeys(publicKeys [][]byte) ([]*api.PublicKeyDetails, error)
+	AddPublicKeys(details []*api.PublicKeyDetail) error
+	GetPublicKeys(publicKeys [][]byte) ([]*api.PublicKeyDetail, error)
 }
 
 // Parameters defines the parameters of the Storer.
 type Parameters struct {
-	Type bstorage.Type
+	Type            bstorage.Type
+	MaxBatchSize    uint
+	AddQueryTimeout time.Duration
+	GetQueryTimeout time.Duration
 }
 
 // NewDefaultParameters returns a *Parameters object with default values.
 func NewDefaultParameters() *Parameters {
 	return &Parameters{
-		Type: DefaultType,
+		Type:            DefaultType,
+		MaxBatchSize:    DefaultMaxBatchSize,
+		AddQueryTimeout: DefaultAddQueryTimeout,
+		GetQueryTimeout: DefaultGetQueryTimeout,
 	}
 }
 

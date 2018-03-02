@@ -25,10 +25,10 @@ message GetPublicKeysRequest {
 }
 
 message GetPublicKeysResponse {
-    repeated PublicKeyDetails public_key_details = 1;
+    repeated PublicKeyDetail public_key_details = 1;
 }
 
-message PublicKeyDetails {
+message PublicKeyDetail {
     bytes public_key = 1;
     string entity_id = 2;
     KeyType key_type = 3;

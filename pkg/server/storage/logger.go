@@ -1,5 +1,6 @@
 package storage
 
 const (
-	logType = "type"
+	logType        = "type"
+	logNPublicKeys = "n_public_keys"
 )
