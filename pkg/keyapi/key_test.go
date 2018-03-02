@@ -7,7 +7,58 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TODO add TestValidateENDPOINTRequest method for each service ENDPOINT
+func TestValidateAddPublicKeysRequest(t *testing.T) {
+	cases := map[string]struct {
+		rq       *AddPublicKeysRequest
+		expected error
+	}{
+		"ok": {
+			rq: &AddPublicKeysRequest{
+				EntityId:   "some entity ID",
+				PublicKeys: [][]byte{{1, 2, 3}},
+			},
+			expected: nil,
+		},
+		"missing entity ID": {
+			rq: &AddPublicKeysRequest{
+				PublicKeys: [][]byte{{1, 2, 3}},
+			},
+			expected: ErrEmptyEntityID,
+		},
+		"missing public keys": {
+			rq: &AddPublicKeysRequest{
+				EntityId: "some entity ID",
+			},
+			expected: ErrEmptyPublicKeys,
+		},
+	}
+	for _, c := range cases {
+		err := ValidateAddPublicKeysRequest(c.rq)
+		assert.Equal(t, c.expected, err)
+	}
+}
+
+func TestValidateGetPublicKeysRequest(t *testing.T) {
+	cases := map[string]struct {
+		rq       *GetPublicKeysRequest
+		expected error
+	}{
+		"ok": {
+			rq: &GetPublicKeysRequest{
+				PublicKeys: [][]byte{{1, 2, 3}},
+			},
+			expected: nil,
+		},
+		"missing public keys": {
+			rq:       &GetPublicKeysRequest{},
+			expected: ErrEmptyPublicKeys,
+		},
+	}
+	for _, c := range cases {
+		err := ValidateGetPublicKeysRequest(c.rq)
+		assert.Equal(t, c.expected, err)
+	}
+}
 
 func TestValidatePublicKeyDetails(t *testing.T) {
 	rng := rand.New(rand.NewSource(0))

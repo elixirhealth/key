@@ -1,17 +1,6 @@
 package cmd
 
-import (
-	"fmt"
-	"sync"
-	"testing"
-
-	"github.com/elxirhealth/key/pkg/server"
-	"github.com/elxirhealth/service-base/pkg/cmd"
-	"github.com/spf13/viper"
-	"github.com/stretchr/testify/assert"
-	"go.uber.org/zap/zapcore"
-)
-
+/* TODO (drausin) enable once have in-memory storer
 func TestTestIO(t *testing.T) {
 	// start in-memory key w/o librarians, so all libri puts will just be queued
 	config := server.NewDefaultConfig()
@@ -39,3 +28,4 @@ func TestTestIO(t *testing.T) {
 	x.StopServer()
 	wg1.Wait()
 }
+*/

@@ -1,9 +1,10 @@
 package server
 
 import (
-	"github.com/elxirhealth/key/pkg/keyapi"
+	api "github.com/elxirhealth/key/pkg/keyapi"
 	"github.com/elxirhealth/key/pkg/server/storage"
 	"github.com/elxirhealth/service-base/pkg/server"
+	"go.uber.org/zap"
 	"golang.org/x/net/context"
 )
 
@@ -13,7 +14,6 @@ type Key struct {
 	config *Config
 
 	storer storage.Storer
-	// TODO maybe add other things here
 }
 
 // newKey creates a new KeyServer from the given config.
@@ -23,27 +23,44 @@ func newKey(config *Config) (*Key, error) {
 	if err != nil {
 		return nil, err
 	}
-	// TODO maybe add other init
-
 	return &Key{
 		BaseServer: baseServer,
 		config:     config,
 		storer:     storer,
-		// TODO maybe add other things
 	}, nil
 }
 
 // AddPublicKeys adds a set of public keys associated with a given entity.
 func (k *Key) AddPublicKeys(
-	ctx context.Context, rq *keyapi.AddPublicKeysRequest,
-) (*keyapi.AddPublicKeysResponse, error) {
-	panic("implement me")
+	ctx context.Context, rq *api.AddPublicKeysRequest,
+) (*api.AddPublicKeysResponse, error) {
+	k.Logger.Debug("received add public keys request", logAddPublicKeysRq(rq)...)
+	if err := api.ValidateAddPublicKeysRequest(rq); err != nil {
+		return nil, err
+	}
+	pkds := getPublicKeyDetails(rq)
+	if err := k.storer.AddPublicKeys(pkds); err != nil {
+		return nil, err
+	}
+	k.Logger.Info("added public keys", logAddPublicKeysRq(rq)...)
+	return &api.AddPublicKeysResponse{}, nil
 }
 
 // GetPublicKeys gets the details (including their associated entity IDs) for a given set of public
 // keys.
 func (k *Key) GetPublicKeys(
-	ctx context.Context, rq *keyapi.GetPublicKeysRequest,
-) (*keyapi.GetPublicKeysResponse, error) {
-	panic("implement me")
+	ctx context.Context, rq *api.GetPublicKeysRequest,
+) (*api.GetPublicKeysResponse, error) {
+	k.Logger.Debug("received get public keys request", zap.Int(logNKeys, len(rq.PublicKeys)))
+	if err := api.ValidateGetPublicKeysRequest(rq); err != nil {
+		return nil, err
+	}
+	pkds, err := k.storer.GetPublicKeys(rq.PublicKeys)
+	if err != nil {
+		return nil, err
+	}
+	k.Logger.Debug("got public keys", zap.Int(logNKeys, len(pkds)))
+	return &api.GetPublicKeysResponse{
+		PublicKeyDetails: pkds,
+	}, nil
 }

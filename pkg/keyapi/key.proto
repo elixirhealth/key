@@ -14,7 +14,7 @@ service Key {
 
 message AddPublicKeysRequest {
     string entity_id = 1;
-    string key_type = 2;
+    KeyType key_type = 2;
     repeated bytes public_keys = 3;
 }
 
