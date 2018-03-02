@@ -24,10 +24,10 @@ const (
 	DefaultGetQueryTimeout = 1 * time.Second
 )
 
-// Storer manages public key publicKey.
+// Storer manages public key details.
 type Storer interface {
-	AddPublicKeys(details []*api.PublicKeyDetail) error
-	GetPublicKeys(publicKeys [][]byte) ([]*api.PublicKeyDetail, error)
+	AddPublicKeys(pkds []*api.PublicKeyDetail) error
+	GetPublicKeys(pks [][]byte) ([]*api.PublicKeyDetail, error)
 }
 
 // Parameters defines the parameters of the Storer.

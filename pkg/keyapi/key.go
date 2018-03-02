@@ -27,7 +27,21 @@ var (
 	ErrEmptyEntityID = errors.New("empty entity ID field")
 )
 
-// TODO add ValidateENDPOINTRequest method for each service ENDPOINT
+// ValidateAddPublicKeysRequest checks that the request has the entity ID and public keys present.
+func ValidateAddPublicKeysRequest(rq *AddPublicKeysRequest) error {
+	if rq.EntityId == "" {
+		return ErrEmptyEntityID
+	}
+	if err := ValidatePublicKeys(rq.PublicKeys); err != nil {
+		return err
+	}
+	return nil
+}
+
+// ValidateGetPublicKeysRequest checks that the request has the public keys present.
+func ValidateGetPublicKeysRequest(rq *GetPublicKeysRequest) error {
+	return ValidatePublicKeys(rq.PublicKeys)
+}
 
 // ValidatePublicKeyDetails checks that the list of public key details isn't empty, has no dups,
 // and has valid public key detail elements.
