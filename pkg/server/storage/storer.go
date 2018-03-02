@@ -1,41 +1,55 @@
 package storage
 
 import (
+	"time"
+
+	api "github.com/elxirhealth/key/pkg/keyapi"
 	bstorage "github.com/elxirhealth/service-base/pkg/server/storage"
 	"go.uber.org/zap/zapcore"
 )
 
-var (
+const (
 	// DefaultType is the default storage type.
 	DefaultType = bstorage.Memory
+
+	// DefaultMaxBatchSize is the maximum size of a batch of public keys.
+	DefaultMaxBatchSize = 64
+
+	// DefaultAddQueryTimeout is the timeout for DataStore queries associated with a Store Add
+	// method.
+	DefaultAddQueryTimeout = 1 * time.Second
+
+	// DefaultGetQueryTimeout is the timeout for DataStore queries associated with a Store Get
+	// method.
+	DefaultGetQueryTimeout = 1 * time.Second
 )
 
-// Storer ... TODO add rest of description.
+// Storer manages public key publicKey.
 type Storer interface {
-	// TODO add methods
+	AddPublicKeys(details []*api.PublicKeyDetail) error
+	GetPublicKeys(publicKeys [][]byte) ([]*api.PublicKeyDetail, error)
 }
 
 // Parameters defines the parameters of the Storer.
 type Parameters struct {
-	Type bstorage.Type
-
-	// TODO add other params, often things like query timeouts to backend bstorage
+	Type            bstorage.Type
+	MaxBatchSize    uint
+	AddQueryTimeout time.Duration
+	GetQueryTimeout time.Duration
 }
 
 // NewDefaultParameters returns a *Parameters object with default values.
 func NewDefaultParameters() *Parameters {
 	return &Parameters{
-		Type: DefaultType,
-
-		// TODO add other params defaults
+		Type:            DefaultType,
+		MaxBatchSize:    DefaultMaxBatchSize,
+		AddQueryTimeout: DefaultAddQueryTimeout,
+		GetQueryTimeout: DefaultGetQueryTimeout,
 	}
 }
 
 // MarshalLogObject writes the parameters to the given object encoder.
 func (p *Parameters) MarshalLogObject(oe zapcore.ObjectEncoder) error {
 	oe.AddString(logType, p.Type.String())
-	// TODO log other params here
 	return nil
 }
-
-// TODO (maybe) add other things common to all bstorage types here
