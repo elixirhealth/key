@@ -39,6 +39,7 @@ func (k *Key) AddPublicKeys(
 		return nil, err
 	}
 	pkds := getPublicKeyDetails(rq)
+	// TODO check num pub keys for entity
 	if err := k.storer.AddPublicKeys(pkds); err != nil {
 		return nil, err
 	}

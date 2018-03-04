@@ -137,6 +137,14 @@ type fixedStorer struct {
 	getErr  error
 }
 
+func (f *fixedStorer) GetEntityPublicKeysCount(entityID string, kt api.KeyType) (int, error) {
+	panic("implement me")
+}
+
+func (f *fixedStorer) GetEntityPublicKeys(entityID string) ([]*api.PublicKeyDetail, error) {
+	panic("implement me")
+}
+
 func (f *fixedStorer) AddPublicKeys(pkds []*api.PublicKeyDetail) error {
 	return f.addErr
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
+	"google.golang.org/api/iterator"
 )
 
 var (
@@ -90,6 +91,97 @@ func TestDatastoreStorer_GetPublicKeys_err(t *testing.T) {
 	assert.Nil(t, pkds)
 }
 
+func TestDatastoreStorer_GetEntityPublicKeys_ok(t *testing.T) {
+	rng := rand.New(rand.NewSource(0))
+	params := NewDefaultParameters()
+	lg := zap.NewNop()
+	pkds1 := api.NewTestPublicKeyDetails(rng, 8)
+	keys, spkds := toStoredMulti(pkds1)
+	s := &datastoreStorer{
+		params: params,
+		client: &fixedDatastoreClient{},
+		iter: &fixedDatastoreIter{
+			keys:   keys,
+			values: spkds,
+		},
+		logger: lg,
+	}
+
+	pkds2, err := s.GetEntityPublicKeys("some entity ID")
+	assert.Nil(t, err)
+	assert.Equal(t, pkds1, pkds2)
+}
+
+func TestDatastoreStorer_GetEntityPublicKeys_err(t *testing.T) {
+	rng := rand.New(rand.NewSource(0))
+	params := NewDefaultParameters()
+	lg := zap.NewNop()
+	s := &datastoreStorer{
+		params: params,
+		client: &fixedDatastoreClient{},
+		iter: &fixedDatastoreIter{
+			err: errTest,
+		},
+		logger: lg,
+	}
+
+	// empty entity ID
+	pkds, err := s.GetEntityPublicKeys("")
+	assert.Equal(t, api.ErrEmptyEntityID, err)
+	assert.Nil(t, pkds)
+
+	// next error
+	pkds, err = s.GetEntityPublicKeys("some entity ID")
+	assert.Equal(t, errTest, err)
+	assert.Nil(t, pkds)
+
+	// bad stored value
+	badKeys, badSpkds := toStoredMulti(api.NewTestPublicKeyDetails(rng, 1))
+	badSpkds[0].PublicKey = "*"
+	s = &datastoreStorer{
+		params: params,
+		client: &fixedDatastoreClient{},
+		iter: &fixedDatastoreIter{
+			keys:   badKeys,
+			values: badSpkds,
+		},
+		logger: lg,
+	}
+	pkds, err = s.GetEntityPublicKeys("some entity ID")
+	assert.NotNil(t, err)
+	assert.Nil(t, pkds)
+}
+
+func TestDatastoreStorer_GetEntityPublicKeysCount(t *testing.T) {
+	params := NewDefaultParameters()
+	lg := zap.NewNop()
+	count := 9
+	s := &datastoreStorer{
+		params: params,
+		client: &fixedDatastoreClient{
+			countValue: count,
+		},
+		logger: lg,
+	}
+
+	// ok
+	val, err := s.GetEntityPublicKeysCount("some entity ID", api.KeyType_READER)
+	assert.Nil(t, err)
+	assert.Equal(t, count, val)
+
+	// query err
+	s = &datastoreStorer{
+		params: params,
+		client: &fixedDatastoreClient{
+			countErr: errTest,
+		},
+		logger: lg,
+	}
+	val, err = s.GetEntityPublicKeysCount("some entity ID", api.KeyType_READER)
+	assert.Equal(t, errTest, err)
+	assert.Zero(t, val)
+}
+
 func TestToFromStoredMulti(t *testing.T) {
 	rng := rand.New(rand.NewSource(0))
 	pkds1 := api.NewTestPublicKeyDetails(rng, 8)
@@ -109,6 +201,8 @@ type fixedDatastoreClient struct {
 	publicKey   map[string]*PublicKeyDetail
 	putMultiErr error
 	getMultiErr error
+	countValue  int
+	countErr    error
 }
 
 func (f *fixedDatastoreClient) PutMulti(
@@ -154,9 +248,34 @@ func (f *fixedDatastoreClient) Delete(ctx context.Context, keys []*datastore.Key
 }
 
 func (f *fixedDatastoreClient) Count(ctx context.Context, q *datastore.Query) (int, error) {
-	panic("implement me")
+	return f.countValue, f.countErr
 }
 
 func (f *fixedDatastoreClient) Run(ctx context.Context, q *datastore.Query) *datastore.Iterator {
-	panic("implement me")
+	return nil
+}
+
+type fixedDatastoreIter struct {
+	err    error
+	keys   []*datastore.Key
+	values []*PublicKeyDetail
+	offset int
+}
+
+func (f *fixedDatastoreIter) Init(iter *datastore.Iterator) {}
+
+func (f *fixedDatastoreIter) Next(dst interface{}) (*datastore.Key, error) {
+	if f.err != nil {
+		return nil, f.err
+	}
+	defer func() { f.offset++ }()
+	if f.offset == len(f.values) {
+		return nil, iterator.Done
+	}
+	v := f.values[f.offset]
+	dst.(*PublicKeyDetail).EntityID = v.EntityID
+	dst.(*PublicKeyDetail).KeyType = v.KeyType
+	dst.(*PublicKeyDetail).PublicKey = v.PublicKey
+	dst.(*PublicKeyDetail).Disabled = v.Disabled
+	return f.keys[f.offset], nil
 }
