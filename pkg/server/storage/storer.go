@@ -15,41 +15,42 @@ const (
 	// DefaultMaxBatchSize is the maximum size of a batch of public keys.
 	DefaultMaxBatchSize = 64
 
-	// DefaultAddQueryTimeout is the timeout for DataStore queries associated with a Store Add
-	// method.
-	DefaultAddQueryTimeout = 1 * time.Second
-
-	// DefaultGetQueryTimeout is the timeout for DataStore queries associated with a Store Get
-	// method.
-	DefaultGetQueryTimeout = 1 * time.Second
+	// DefaultQueryTimeout is the default timeout for DataStore queries.
+	DefaultQueryTimeout = 1 * time.Second
 )
 
 // Storer manages public key details.
 type Storer interface {
 	AddPublicKeys(pkds []*api.PublicKeyDetail) error
 	GetPublicKeys(pks [][]byte) ([]*api.PublicKeyDetail, error)
+	GetEntityPublicKeys(entityID string) ([]*api.PublicKeyDetail, error)
+	GetEntityPublicKeysCount(entityID string, kt api.KeyType) (int, error)
 }
 
 // Parameters defines the parameters of the Storer.
 type Parameters struct {
-	Type            bstorage.Type
-	MaxBatchSize    uint
-	AddQueryTimeout time.Duration
-	GetQueryTimeout time.Duration
+	Type                  bstorage.Type
+	MaxBatchSize          uint
+	AddQueryTimeout       time.Duration
+	GetQueryTimeout       time.Duration
+	GetEntityQueryTimeout time.Duration
 }
 
 // NewDefaultParameters returns a *Parameters object with default values.
 func NewDefaultParameters() *Parameters {
 	return &Parameters{
-		Type:            DefaultType,
-		MaxBatchSize:    DefaultMaxBatchSize,
-		AddQueryTimeout: DefaultAddQueryTimeout,
-		GetQueryTimeout: DefaultGetQueryTimeout,
+		Type:                  DefaultType,
+		MaxBatchSize:          DefaultMaxBatchSize,
+		AddQueryTimeout:       DefaultQueryTimeout,
+		GetQueryTimeout:       DefaultQueryTimeout,
+		GetEntityQueryTimeout: DefaultQueryTimeout,
 	}
 }
 
 // MarshalLogObject writes the parameters to the given object encoder.
 func (p *Parameters) MarshalLogObject(oe zapcore.ObjectEncoder) error {
 	oe.AddString(logType, p.Type.String())
+	oe.AddDuration(logAddQueryTimeout, p.AddQueryTimeout)
+	oe.AddDuration(logGetQueryTimeout, p.GetQueryTimeout)
 	return nil
 }

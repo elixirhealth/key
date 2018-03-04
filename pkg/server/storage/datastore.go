@@ -8,10 +8,15 @@ import (
 	api "github.com/elxirhealth/key/pkg/keyapi"
 	bstorage "github.com/elxirhealth/service-base/pkg/server/storage"
 	"go.uber.org/zap"
+	"google.golang.org/api/iterator"
 )
 
 const (
 	publicKeyKind = "public_key"
+
+	// MaxEntityKeyTypeKeys indicates the maximum number of public keys an entity can have for a given
+	// key type.
+	MaxEntityKeyTypeKeys = 256
 )
 
 // PublicKeyDetail represents a public key and its publicKey, stored in DataStore.
@@ -25,6 +30,7 @@ type PublicKeyDetail struct {
 type datastoreStorer struct {
 	params *Parameters
 	client bstorage.DatastoreClient
+	iter   bstorage.DatastoreIterator
 	logger *zap.Logger
 }
 
@@ -74,6 +80,46 @@ func (s *datastoreStorer) GetPublicKeys(pks [][]byte) ([]*api.PublicKeyDetail, e
 	return pkds, nil
 }
 
+func (s *datastoreStorer) GetEntityPublicKeys(entityID string) ([]*api.PublicKeyDetail, error) {
+	if entityID == "" {
+		return nil, api.ErrEmptyEntityID
+	}
+	q := getEntityPublicKeysQuery(entityID, api.KeyType_READER).Limit(MaxEntityKeyTypeKeys)
+	ctx, cancel := context.WithTimeout(context.Background(), s.params.GetEntityQueryTimeout)
+	defer cancel()
+	iter := s.client.Run(ctx, q)
+	s.iter.Init(iter)
+	pkds := make([]*api.PublicKeyDetail, MaxEntityKeyTypeKeys)
+	i := 0
+	for {
+		spkd := &PublicKeyDetail{}
+		if _, err := s.iter.Next(spkd); err == iterator.Done {
+			// no more results
+			break
+		} else if err != nil {
+			return nil, err
+		}
+		pkd, err := fromStored(spkd)
+		if err != nil {
+			return nil, err
+		}
+		pkds[i] = pkd
+		i++
+	}
+	return pkds[:i], nil
+}
+
+func (s *datastoreStorer) GetEntityPublicKeysCount(entityID string, kt api.KeyType) (int, error) {
+	return s.client.Count(context.Background(), getEntityPublicKeysQuery(entityID, kt))
+}
+
+func getEntityPublicKeysQuery(entityID string, kt api.KeyType) *datastore.Query {
+	return datastore.NewQuery(publicKeyKind).
+		Filter("entity_id = ", entityID).
+		Filter("key_type = ", kt.String()).
+		Filter("disabled = ", false)
+}
+
 func toStoredKeys(pks [][]byte) []*datastore.Key {
 	keys := make([]*datastore.Key, len(pks))
 	for i, pk := range pks {
@@ -102,15 +148,15 @@ func toStoredMulti(pkds []*api.PublicKeyDetail) ([]*datastore.Key, []*PublicKeyD
 	return keys, spkds
 }
 
-func fromStored(pkd *PublicKeyDetail) (*api.PublicKeyDetail, error) {
-	pk, err := hex.DecodeString(pkd.PublicKey)
+func fromStored(spkd *PublicKeyDetail) (*api.PublicKeyDetail, error) {
+	pk, err := hex.DecodeString(spkd.PublicKey)
 	if err != nil {
 		return nil, err
 	}
 	return &api.PublicKeyDetail{
 		PublicKey: pk,
-		EntityId:  pkd.EntityID,
-		KeyType:   api.KeyType(api.KeyType_value[pkd.KeyType]),
+		EntityId:  spkd.EntityID,
+		KeyType:   api.KeyType(api.KeyType_value[spkd.KeyType]),
 	}, nil
 }
 
