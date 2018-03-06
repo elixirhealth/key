@@ -5,9 +5,9 @@ package keyapi;
 service Key {
     rpc AddPublicKeys (AddPublicKeysRequest) returns (AddPublicKeysResponse) {}
     rpc GetPublicKeys (GetPublicKeysRequest) returns (GetPublicKeysResponse) {}
+    rpc SamplePublicKeys (SamplePublicKeysRequest) returns (SamplePublicKeysResponse) {}
 
     // TODO (drausin)
-    // rpc SamplePublicKeys (SamplePublicKeysRequest) returns (SamplePublicKeysResponse) {}
     // rpc DisablePublicKeys (DisablePublicKeysRequest) returns (DisablePublicKeysResponse) {}
 
 }
@@ -25,6 +25,16 @@ message GetPublicKeysRequest {
 }
 
 message GetPublicKeysResponse {
+    repeated PublicKeyDetail public_key_details = 1;
+}
+
+message SamplePublicKeysRequest {
+    string of_entity_id = 1;
+    uint32 n_public_keys = 2;
+    string requester_entity_id = 3;
+}
+
+message SamplePublicKeysResponse {
     repeated PublicKeyDetail public_key_details = 1;
 }
 
