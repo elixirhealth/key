@@ -1,11 +1,22 @@
 package server
 
 import (
+	"math/rand"
+	"time"
+
 	api "github.com/elxirhealth/key/pkg/keyapi"
 	"github.com/elxirhealth/key/pkg/server/storage"
 	"github.com/elxirhealth/service-base/pkg/server"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"golang.org/x/net/context"
+)
+
+var (
+	// ErrTooManyActivePublicKeys indicates when adding more public keys would bring the total
+	// number of active PKs abvoe the maximum allowed.
+	ErrTooManyActivePublicKeys = errors.New("too many active public keys for the entity and " +
+		"key type")
 )
 
 // Key implements the KeyServer interface.
@@ -38,8 +49,12 @@ func (k *Key) AddPublicKeys(
 	if err := api.ValidateAddPublicKeysRequest(rq); err != nil {
 		return nil, err
 	}
+	if n, err := k.storer.GetEntityPublicKeysCount(rq.EntityId, rq.KeyType); err != nil {
+		return nil, err
+	} else if n+len(rq.PublicKeys) > storage.MaxEntityKeyTypeKeys {
+		return nil, ErrTooManyActivePublicKeys
+	}
 	pkds := getPublicKeyDetails(rq)
-	// TODO check num pub keys for entity
 	if err := k.storer.AddPublicKeys(pkds); err != nil {
 		return nil, err
 	}
@@ -63,5 +78,25 @@ func (k *Key) GetPublicKeys(
 	k.Logger.Debug("got public keys", zap.Int(logNKeys, len(pkds)))
 	return &api.GetPublicKeysResponse{
 		PublicKeyDetails: pkds,
+	}, nil
+}
+
+// SamplePublicKeys returns a sample of public keys of the given entity.
+func (k *Key) SamplePublicKeys(
+	ctx context.Context, rq *api.SamplePublicKeysRequest,
+) (*api.SamplePublicKeysResponse, error) {
+	if err := api.ValidateSamplePublicKeysRequest(rq); err != nil {
+		return nil, err
+	}
+	allPKDs, err := k.storer.GetEntityPublicKeys(rq.OfEntityId)
+	if err != nil {
+		return nil, err
+	}
+	orderKey := []byte(rq.RequesterEntityId)
+	topOrdered := getOrderedLimit(allPKDs, orderKey, api.MaxSamplePublicKeysSize)
+	rng := rand.New(rand.NewSource(int64(time.Now().Nanosecond()))) // good enough
+	topSampled := sampleWithoutReplacement(topOrdered, rng, int(rq.NPublicKeys))
+	return &api.SamplePublicKeysResponse{
+		PublicKeyDetails: topSampled,
 	}, nil
 }

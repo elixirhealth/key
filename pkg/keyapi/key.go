@@ -9,6 +9,12 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	// MaxSamplePublicKeysSize is the maximum number of public keys that an entity can sample
+	// from another entity.
+	MaxSamplePublicKeysSize = 8
+)
+
 var (
 	// ErrEmptyPublicKeys indicates when a list of public keys is nil or zero length.
 	ErrEmptyPublicKeys = errors.New("empty public keys list")
@@ -25,6 +31,15 @@ var (
 
 	// ErrEmptyEntityID indicates when the entity ID of a public key detail value is missing.
 	ErrEmptyEntityID = errors.New("empty entity ID field")
+
+	// ErrEmptyNPublicKeys indicates when the number of public keys is zero in a
+	// SamplePublicKeys request.
+	ErrEmptyNPublicKeys = errors.New("missing number of public keys")
+
+	// ErrNPublicKeysTooLarge indicates when the number of public keys in a sample request is
+	// larger than the maximum value.
+	ErrNPublicKeysTooLarge = fmt.Errorf("number of public keys larger than maximum value %d",
+		MaxSamplePublicKeysSize)
 )
 
 // ValidateAddPublicKeysRequest checks that the request has the entity ID and public keys present.
@@ -41,6 +56,24 @@ func ValidateAddPublicKeysRequest(rq *AddPublicKeysRequest) error {
 // ValidateGetPublicKeysRequest checks that the request has the public keys present.
 func ValidateGetPublicKeysRequest(rq *GetPublicKeysRequest) error {
 	return ValidatePublicKeys(rq.PublicKeys)
+}
+
+// ValidateSamplePublicKeysRequest checks that the request has the entity IDs and number of public
+// keys present.
+func ValidateSamplePublicKeysRequest(rq *SamplePublicKeysRequest) error {
+	if rq.OfEntityId == "" {
+		return ErrEmptyEntityID
+	}
+	if rq.NPublicKeys == 0 {
+		return ErrEmptyNPublicKeys
+	}
+	if rq.NPublicKeys > MaxSamplePublicKeysSize {
+		return ErrNPublicKeysTooLarge
+	}
+	if rq.RequesterEntityId == "" {
+		return ErrEmptyEntityID
+	}
+	return nil
 }
 
 // ValidatePublicKeyDetails checks that the list of public key details isn't empty, has no dups,

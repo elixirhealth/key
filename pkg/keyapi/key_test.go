@@ -60,6 +60,55 @@ func TestValidateGetPublicKeysRequest(t *testing.T) {
 	}
 }
 
+func TestValidateSamplePublicKeysRequest(t *testing.T) {
+	cases := map[string]struct {
+		rq       *SamplePublicKeysRequest
+		expected error
+	}{
+		"ok": {
+			rq: &SamplePublicKeysRequest{
+				OfEntityId:        "some entity ID",
+				NPublicKeys:       4,
+				RequesterEntityId: "another entity ID",
+			},
+			expected: nil,
+		},
+		"missing OfEntityID": {
+			rq: &SamplePublicKeysRequest{
+				NPublicKeys:       4,
+				RequesterEntityId: "another entity ID",
+			},
+			expected: ErrEmptyEntityID,
+		},
+		"missing NPublicKeys": {
+			rq: &SamplePublicKeysRequest{
+				OfEntityId:        "some entity ID",
+				RequesterEntityId: "another entity ID",
+			},
+			expected: ErrEmptyNPublicKeys,
+		},
+		"NPublicKeys too large": {
+			rq: &SamplePublicKeysRequest{
+				OfEntityId:        "some entity ID",
+				NPublicKeys:       16,
+				RequesterEntityId: "another entity ID",
+			},
+			expected: ErrNPublicKeysTooLarge,
+		},
+		"missing RequesterEntity": {
+			rq: &SamplePublicKeysRequest{
+				OfEntityId:  "some entity ID",
+				NPublicKeys: 4,
+			},
+			expected: ErrEmptyEntityID,
+		},
+	}
+	for desc, c := range cases {
+		err := ValidateSamplePublicKeysRequest(c.rq)
+		assert.Equal(t, c.expected, err, desc)
+	}
+}
+
 func TestValidatePublicKeyDetails(t *testing.T) {
 	rng := rand.New(rand.NewSource(0))
 	okPKD := NewTestPublicKeyDetail(rng)
