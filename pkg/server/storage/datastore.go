@@ -69,7 +69,9 @@ func (s *datastoreStorer) GetPublicKeys(pks [][]byte) ([]*api.PublicKeyDetail, e
 	sKeys := toStoredKeys(pks)
 	ctx, cancel := context.WithTimeout(context.Background(), s.params.GetQueryTimeout)
 	defer cancel()
-	if err := s.client.GetMulti(ctx, sKeys, spkds); err != nil {
+	if err := s.client.GetMulti(ctx, sKeys, spkds); err == datastore.ErrNoSuchEntity {
+		return nil, ErrNoSuchPublicKey
+	} else if err != nil {
 		return nil, err
 	}
 	pkds, err := fromStoredMulti(spkds)
@@ -89,8 +91,7 @@ func (s *datastoreStorer) GetEntityPublicKeys(entityID string) ([]*api.PublicKey
 	defer cancel()
 	iter := s.client.Run(ctx, q)
 	s.iter.Init(iter)
-	pkds := make([]*api.PublicKeyDetail, MaxEntityKeyTypeKeys)
-	i := 0
+	pkds := make([]*api.PublicKeyDetail, 0, MaxEntityKeyTypeKeys)
 	for {
 		spkd := &PublicKeyDetail{}
 		if _, err := s.iter.Next(spkd); err == iterator.Done {
@@ -103,14 +104,19 @@ func (s *datastoreStorer) GetEntityPublicKeys(entityID string) ([]*api.PublicKey
 		if err != nil {
 			return nil, err
 		}
-		pkds[i] = pkd
-		i++
+		pkds = append(pkds, pkd)
 	}
-	return pkds[:i], nil
+	s.logger.Debug("found public keys for entity", logGetEntityPubKeys(entityID, pkds)...)
+	return pkds, nil
 }
 
-func (s *datastoreStorer) GetEntityPublicKeysCount(entityID string, kt api.KeyType) (int, error) {
-	return s.client.Count(context.Background(), getEntityPublicKeysQuery(entityID, kt))
+func (s *datastoreStorer) CountEntityPublicKeys(entityID string, kt api.KeyType) (int, error) {
+	n, err := s.client.Count(context.Background(), getEntityPublicKeysQuery(entityID, kt))
+	if err != nil {
+		return 0, err
+	}
+	s.logger.Debug("counted public keys for entity", logCountEntityPubKeys(entityID, kt)...)
+	return n, nil
 }
 
 func getEntityPublicKeysQuery(entityID string, kt api.KeyType) *datastore.Query {

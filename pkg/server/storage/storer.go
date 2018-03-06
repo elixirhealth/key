@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"errors"
 	"time"
 
 	api "github.com/elxirhealth/key/pkg/keyapi"
@@ -19,12 +20,17 @@ const (
 	DefaultQueryTimeout = 1 * time.Second
 )
 
+var (
+	// ErrNoSuchPublicKey indicates when details for a requested public key do not exist.
+	ErrNoSuchPublicKey = errors.New("not details found for given public key")
+)
+
 // Storer manages public key details.
 type Storer interface {
 	AddPublicKeys(pkds []*api.PublicKeyDetail) error
 	GetPublicKeys(pks [][]byte) ([]*api.PublicKeyDetail, error)
 	GetEntityPublicKeys(entityID string) ([]*api.PublicKeyDetail, error)
-	GetEntityPublicKeysCount(entityID string, kt api.KeyType) (int, error)
+	CountEntityPublicKeys(entityID string, kt api.KeyType) (int, error)
 }
 
 // Parameters defines the parameters of the Storer.

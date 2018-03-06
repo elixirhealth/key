@@ -18,7 +18,6 @@ var (
 	errTest = errors.New("some test error")
 )
 
-/* TODO (drausin) add back in once have in-memory storer
 func TestNewKey_ok(t *testing.T) {
 	config := NewDefaultConfig()
 	c, err := newKey(config)
@@ -26,7 +25,6 @@ func TestNewKey_ok(t *testing.T) {
 	assert.Equal(t, config, c.config)
 	assert.NotEmpty(t, c.storer)
 }
-*/
 
 func TestNewKey_err(t *testing.T) {
 	badConfigs := map[string]*Config{
@@ -85,14 +83,14 @@ func TestKey_AddPublicKeys_err(t *testing.T) {
 		"storer get count error": {
 			k: &Key{
 				BaseServer: baseServer,
-				storer:     &fixedStorer{getEntityPKsCountErr: errTest},
+				storer:     &fixedStorer{countEntityPKsErr: errTest},
 			},
 			rq: okRq,
 		},
 		"too many added": {
 			k: &Key{
 				BaseServer: baseServer,
-				storer:     &fixedStorer{getEntityPKsCountValue: 255},
+				storer:     &fixedStorer{countEntityPKsValue: 255},
 			},
 			rq: okRq,
 		},
@@ -232,17 +230,17 @@ func TestKey_SamplePublicKeys_err(t *testing.T) {
 }
 
 type fixedStorer struct {
-	addErr                 error
-	getPKDs                []*api.PublicKeyDetail
-	getErr                 error
-	getEntityPKsCountValue int
-	getEntityPKsCountErr   error
-	getEntityPKs           []*api.PublicKeyDetail
-	getEntityPKsErr        error
+	addErr              error
+	getPKDs             []*api.PublicKeyDetail
+	getErr              error
+	countEntityPKsValue int
+	countEntityPKsErr   error
+	getEntityPKs        []*api.PublicKeyDetail
+	getEntityPKsErr     error
 }
 
-func (f *fixedStorer) GetEntityPublicKeysCount(entityID string, kt api.KeyType) (int, error) {
-	return f.getEntityPKsCountValue, f.getEntityPKsCountErr
+func (f *fixedStorer) CountEntityPublicKeys(entityID string, kt api.KeyType) (int, error) {
+	return f.countEntityPKsValue, f.countEntityPKsErr
 }
 
 func (f *fixedStorer) GetEntityPublicKeys(entityID string) ([]*api.PublicKeyDetail, error) {

@@ -70,9 +70,7 @@ func TestDatastoreStorer_GetPublicKeys_err(t *testing.T) {
 	lg := zap.NewNop()
 	s := &datastoreStorer{
 		params: params,
-		client: &fixedDatastoreClient{
-			getMultiErr: errTest,
-		},
+		client: &fixedDatastoreClient{},
 		logger: lg,
 	}
 	n := 8
@@ -81,11 +79,19 @@ func TestDatastoreStorer_GetPublicKeys_err(t *testing.T) {
 		pubKeys[i] = pkd.PublicKey
 	}
 
+	// bad request
 	pkds, err := s.GetPublicKeys(nil)
 	assert.Equal(t, api.ErrEmptyPublicKeys, err)
 	assert.Nil(t, pkds)
 
-	// datastore client GetMulti error
+	// missing key
+	s.client = &fixedDatastoreClient{getMultiErr: datastore.ErrNoSuchEntity}
+	pkds, err = s.GetPublicKeys(pubKeys)
+	assert.Equal(t, ErrNoSuchPublicKey, err)
+	assert.Nil(t, pkds)
+
+	// other datastore client GetMulti error
+	s.client = &fixedDatastoreClient{getMultiErr: errTest}
 	pkds, err = s.GetPublicKeys(pubKeys)
 	assert.Equal(t, errTest, err)
 	assert.Nil(t, pkds)
@@ -152,7 +158,7 @@ func TestDatastoreStorer_GetEntityPublicKeys_err(t *testing.T) {
 	assert.Nil(t, pkds)
 }
 
-func TestDatastoreStorer_GetEntityPublicKeysCount(t *testing.T) {
+func TestDatastoreStorer_CountEntityPublicKeys(t *testing.T) {
 	params := NewDefaultParameters()
 	lg := zap.NewNop()
 	count := 9
@@ -165,7 +171,7 @@ func TestDatastoreStorer_GetEntityPublicKeysCount(t *testing.T) {
 	}
 
 	// ok
-	val, err := s.GetEntityPublicKeysCount("some entity ID", api.KeyType_READER)
+	val, err := s.CountEntityPublicKeys("some entity ID", api.KeyType_READER)
 	assert.Nil(t, err)
 	assert.Equal(t, count, val)
 
@@ -177,7 +183,7 @@ func TestDatastoreStorer_GetEntityPublicKeysCount(t *testing.T) {
 		},
 		logger: lg,
 	}
-	val, err = s.GetEntityPublicKeysCount("some entity ID", api.KeyType_READER)
+	val, err = s.CountEntityPublicKeys("some entity ID", api.KeyType_READER)
 	assert.Equal(t, errTest, err)
 	assert.Zero(t, val)
 }
