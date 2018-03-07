@@ -196,6 +196,9 @@ func TestToFromStoredMulti(t *testing.T) {
 	assert.Equal(t, len(pkds1), len(spkds))
 	for i, sKey := range sKeys {
 		assert.Equal(t, sKey.Name, spkds[i].PublicKey)
+		assert.NotZero(t, spkds[i].AddedTime)
+		assert.NotZero(t, spkds[i].ModifiedTime)
+		assert.Zero(t, spkds[i].DisabledTime)
 	}
 
 	pkds2, err := fromStoredMulti(spkds)

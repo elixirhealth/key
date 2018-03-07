@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"encoding/hex"
+	"time"
 
 	"cloud.google.com/go/datastore"
 	api "github.com/elxirhealth/key/pkg/keyapi"
@@ -12,19 +13,25 @@ import (
 )
 
 const (
-	publicKeyKind = "public_key"
-
 	// MaxEntityKeyTypeKeys indicates the maximum number of public keys an entity can have for a given
 	// key type.
 	MaxEntityKeyTypeKeys = 256
+
+	publicKeyKind = "public_key"
+
+	secsPerDay = int64(3600 * 24 * 24)
 )
 
 // PublicKeyDetail represents a public key and its publicKey, stored in DataStore.
 type PublicKeyDetail struct {
-	PublicKey string `datastore:"__key__"`
-	EntityID  string `datastore:"entity_id"`
-	KeyType   string `datastore:"key_type"`
-	Disabled  bool   `datastore:"disabled"`
+	PublicKey    string    `datastore:"__key__"`
+	EntityID     string    `datastore:"entity_id"`
+	KeyType      string    `datastore:"key_type"`
+	Disabled     bool      `datastore:"disabled"`
+	ModifiedDate int32     `datastore:"modified_date"`
+	ModifiedTime time.Time `datastore:"modified_time"`
+	AddedTime    time.Time `datastore:"added_time"`
+	DisabledTime time.Time `datastore:"disabled_time"`
 }
 
 type datastoreStorer struct {
@@ -134,22 +141,26 @@ func toStoredKeys(pks [][]byte) []*datastore.Key {
 	return keys
 }
 
-func toStored(pkd *api.PublicKeyDetail) (*datastore.Key, *PublicKeyDetail) {
+func toStored(pkd *api.PublicKeyDetail, now time.Time) (*datastore.Key, *PublicKeyDetail) {
 	pkHex := hex.EncodeToString(pkd.PublicKey)
 	key := datastore.NameKey(publicKeyKind, pkHex, nil)
 	return key, &PublicKeyDetail{
-		PublicKey: pkHex,
-		EntityID:  pkd.EntityId,
-		KeyType:   pkd.KeyType.String(),
-		Disabled:  false,
+		PublicKey:    pkHex,
+		EntityID:     pkd.EntityId,
+		KeyType:      pkd.KeyType.String(),
+		Disabled:     false,
+		AddedTime:    now,
+		ModifiedTime: now,
+		ModifiedDate: int32(now.Unix() / secsPerDay),
 	}
 }
 
 func toStoredMulti(pkds []*api.PublicKeyDetail) ([]*datastore.Key, []*PublicKeyDetail) {
 	keys := make([]*datastore.Key, len(pkds))
 	spkds := make([]*PublicKeyDetail, len(pkds))
+	now := time.Now()
 	for i, pkd := range pkds {
-		keys[i], spkds[i] = toStored(pkd)
+		keys[i], spkds[i] = toStored(pkd, now)
 	}
 	return keys, spkds
 }
