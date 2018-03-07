@@ -75,7 +75,7 @@ func (k *Key) GetPublicKeys(
 	if err != nil {
 		return nil, err
 	}
-	k.Logger.Debug("got public keys", zap.Int(logNKeys, len(pkds)))
+	k.Logger.Info("got public keys", zap.Int(logNKeys, len(pkds)))
 	return &api.GetPublicKeysResponse{
 		PublicKeyDetails: pkds,
 	}, nil
@@ -85,6 +85,7 @@ func (k *Key) GetPublicKeys(
 func (k *Key) SamplePublicKeys(
 	ctx context.Context, rq *api.SamplePublicKeysRequest,
 ) (*api.SamplePublicKeysResponse, error) {
+	k.Logger.Debug("received sample public keys request", logSamplePublicKeysRq(rq)...)
 	if err := api.ValidateSamplePublicKeysRequest(rq); err != nil {
 		return nil, err
 	}
@@ -96,6 +97,7 @@ func (k *Key) SamplePublicKeys(
 	topOrdered := getOrderedLimit(allPKDs, orderKey, api.MaxSamplePublicKeysSize)
 	rng := rand.New(rand.NewSource(int64(time.Now().Nanosecond()))) // good enough
 	topSampled := sampleWithoutReplacement(topOrdered, rng, int(rq.NPublicKeys))
+	k.Logger.Info("sampled public keys", logSamplePublicKeysRq(rq)...)
 	return &api.SamplePublicKeysResponse{
 		PublicKeyDetails: topSampled,
 	}, nil

@@ -30,8 +30,8 @@ message GetPublicKeysResponse {
 
 message SamplePublicKeysRequest {
     string of_entity_id = 1;
-    uint32 n_public_keys = 2;
-    string requester_entity_id = 3;
+    string requester_entity_id = 2;
+    uint32 n_public_keys = 3;
 }
 
 message SamplePublicKeysResponse {

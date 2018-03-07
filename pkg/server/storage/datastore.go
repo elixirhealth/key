@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	// MaxEntityKeyTypeKeys indicates the maximum number of public keys an entity can have for a given
-	// key type.
+	// MaxEntityKeyTypeKeys indicates the maximum number of public keys an entity can have for
+	// a given key type.
 	MaxEntityKeyTypeKeys = 256
 
 	publicKeyKind = "public_key"
@@ -24,14 +24,14 @@ const (
 
 // PublicKeyDetail represents a public key and its publicKey, stored in DataStore.
 type PublicKeyDetail struct {
-	PublicKey    string    `datastore:"__key__"`
-	EntityID     string    `datastore:"entity_id"`
-	KeyType      string    `datastore:"key_type"`
-	Disabled     bool      `datastore:"disabled"`
-	ModifiedDate int32     `datastore:"modified_date"`
-	ModifiedTime time.Time `datastore:"modified_time"`
-	AddedTime    time.Time `datastore:"added_time"`
-	DisabledTime time.Time `datastore:"disabled_time"`
+	PublicKey    *datastore.Key `datastore:"__key__"`
+	EntityID     string         `datastore:"entity_id"`
+	KeyType      string         `datastore:"key_type"`
+	Disabled     bool           `datastore:"disabled"`
+	ModifiedDate int32          `datastore:"modified_date"`
+	ModifiedTime time.Time      `datastore:"modified_time"`
+	AddedTime    time.Time      `datastore:"added_time"`
+	DisabledTime time.Time      `datastore:"disabled_time"`
 }
 
 type datastoreStorer struct {
@@ -50,6 +50,7 @@ func NewDatastore(gcpProjectID string, params *Parameters, logger *zap.Logger) (
 	return &datastoreStorer{
 		params: params,
 		client: &bstorage.DatastoreClientImpl{Inner: client},
+		iter:   &bstorage.DatastoreIteratorImpl{},
 		logger: logger,
 	}, nil
 }
@@ -145,7 +146,7 @@ func toStored(pkd *api.PublicKeyDetail, now time.Time) (*datastore.Key, *PublicK
 	pkHex := hex.EncodeToString(pkd.PublicKey)
 	key := datastore.NameKey(publicKeyKind, pkHex, nil)
 	return key, &PublicKeyDetail{
-		PublicKey:    pkHex,
+		PublicKey:    key,
 		EntityID:     pkd.EntityId,
 		KeyType:      pkd.KeyType.String(),
 		Disabled:     false,
@@ -166,7 +167,7 @@ func toStoredMulti(pkds []*api.PublicKeyDetail) ([]*datastore.Key, []*PublicKeyD
 }
 
 func fromStored(spkd *PublicKeyDetail) (*api.PublicKeyDetail, error) {
-	pk, err := hex.DecodeString(spkd.PublicKey)
+	pk, err := hex.DecodeString(spkd.PublicKey.Name)
 	if err != nil {
 		return nil, err
 	}
