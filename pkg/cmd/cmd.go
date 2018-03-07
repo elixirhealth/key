@@ -9,27 +9,25 @@ import (
 	"github.com/elxirhealth/key/version"
 	"github.com/elxirhealth/service-base/pkg/cmd"
 	bserver "github.com/elxirhealth/service-base/pkg/server"
+	bstorage "github.com/elxirhealth/service-base/pkg/server/storage"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
 const (
-	serviceNameLower = "key"
-	serviceNameCamel = "Key"
-	envVarPrefix     = "KEY"
-	logLevelFlag     = "logLevel"
-
-	// TODO uncomment or delete
-	//storageMemoryFlag    = "storageMemory"
-	//storageDataStoreFlag = "storageDataStore"
-	//storagePostgresFlag  = "storagePostgres"
-	//dbURLFlag            = "dbURL"
+	serviceNameLower     = "key"
+	serviceNameCamel     = "Key"
+	envVarPrefix         = "KEY"
+	logLevelFlag         = "logLevel"
+	storageMemoryFlag    = "storageMemory"
+	storageDataStoreFlag = "storageDataStore"
+	gcpProjectIDFlag     = "gcpProjectID"
 )
 
 var (
 	rootCmd = &cobra.Command{
-		Short: "TODO", // TODO
+		Short: "operate a Key server",
 	}
 )
 
@@ -39,17 +37,15 @@ func init() {
 
 	cmd.Start(serviceNameLower, serviceNameCamel, rootCmd, version.Current, start,
 		func(flags *pflag.FlagSet) {
-			// TODO define other flags here if needed, e.g.,
-			//flags.Bool(storageMemoryFlag, true, "use in-memory storage")
-			//flags.Bool(storageDataStoreFlag, false, "use GCP DataStore storage")
-			//flags.Bool(storagePostgresFlag, false, "use Postgres DB storage")
-			//flags.String(dbURLFlag, "", "Postgres DB URL")
+			flags.Bool(storageMemoryFlag, true, "use in-memory storage")
+			flags.Bool(storageDataStoreFlag, false, "use GCP DataStore storage")
+			flags.String(gcpProjectIDFlag, "", "GCP project ID")
 		})
 
 	testCmd := cmd.Test(serviceNameLower, rootCmd)
 	cmd.TestHealth(serviceNameLower, testCmd)
 	cmd.TestIO(serviceNameLower, testCmd, testIO, func(flags *pflag.FlagSet) {
-		// TODO define other flags here if needed
+		// add additional test flags here if needed
 	})
 
 	cmd.Version(serviceNameLower, rootCmd, version.Current)
@@ -82,7 +78,7 @@ func getKeyConfig() (*server.Config, error) {
 		WithProfilerPort(uint(viper.GetInt(cmd.ProfilerPortFlag))).
 		WithLogLevel(logging.GetLogLevel(viper.GetString(logLevelFlag))).
 		WithProfile(viper.GetBool(cmd.ProfileFlag))
-	// TODO set other config elements here
-
+	c.Storage.Type = bstorage.DataStore
+	c.GCPProjectID = viper.GetString(gcpProjectIDFlag)
 	return c, nil
 }

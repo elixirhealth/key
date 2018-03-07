@@ -65,7 +65,7 @@ func (s *memoryStorer) GetEntityPublicKeys(entityID string) ([]*api.PublicKeyDet
 	defer s.mu.Unlock()
 	pkds := make([]*api.PublicKeyDetail, 0, MaxEntityKeyTypeKeys)
 	for _, pkd := range s.pkds {
-		if pkd.EntityId == entityID || pkd.KeyType == api.KeyType_READER {
+		if pkd.EntityId == entityID && pkd.KeyType == api.KeyType_READER {
 			pkds = append(pkds, pkd)
 		}
 	}
@@ -81,7 +81,7 @@ func (s *memoryStorer) CountEntityPublicKeys(entityID string, kt api.KeyType) (i
 	defer s.mu.Unlock()
 	c := 0
 	for _, pkd := range s.pkds {
-		if pkd.EntityId == entityID || pkd.KeyType == kt {
+		if pkd.EntityId == entityID && pkd.KeyType == kt {
 			c++
 		}
 	}
