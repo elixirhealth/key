@@ -1,9 +1,10 @@
 package cmd
 
 import (
+	"errors"
 	"log"
 
-	"github.com/drausin/libri/libri/common/errors"
+	errors2 "github.com/drausin/libri/libri/common/errors"
 	"github.com/drausin/libri/libri/common/logging"
 	"github.com/elxirhealth/key/pkg/server"
 	"github.com/elxirhealth/key/version"
@@ -26,6 +27,9 @@ const (
 )
 
 var (
+	errMultipleStorageTypes = errors.New("multiple storage types specified")
+	errNoStorageType        = errors.New("no storage type specified")
+
 	rootCmd = &cobra.Command{
 		Short: "operate a Key server",
 	}
@@ -53,7 +57,7 @@ func init() {
 	// bind viper flags
 	viper.SetEnvPrefix(envVarPrefix) // look for env vars with prefix
 	viper.AutomaticEnv()             // read in environment variables that match
-	errors.MaybePanic(viper.BindPFlags(rootCmd.Flags()))
+	errors2.MaybePanic(viper.BindPFlags(rootCmd.Flags()))
 }
 
 // Execute runs the root key command.
@@ -78,7 +82,24 @@ func getKeyConfig() (*server.Config, error) {
 		WithProfilerPort(uint(viper.GetInt(cmd.ProfilerPortFlag))).
 		WithLogLevel(logging.GetLogLevel(viper.GetString(logLevelFlag))).
 		WithProfile(viper.GetBool(cmd.ProfileFlag))
-	c.Storage.Type = bstorage.DataStore
+	st, err := getStorageType()
+	if err != nil {
+		return nil, err
+	}
+	c.Storage.Type = st
 	c.GCPProjectID = viper.GetString(gcpProjectIDFlag)
 	return c, nil
+}
+
+func getStorageType() (bstorage.Type, error) {
+	if viper.GetBool(storageMemoryFlag) && viper.GetBool(storageDataStoreFlag) {
+		return bstorage.Unspecified, errMultipleStorageTypes
+	}
+	if viper.GetBool(storageMemoryFlag) {
+		return bstorage.Memory, nil
+	}
+	if viper.GetBool(storageDataStoreFlag) {
+		return bstorage.Postgres, nil
+	}
+	return bstorage.Unspecified, errNoStorageType
 }
