@@ -31,3 +31,13 @@ func logSamplePublicKeysRq(rq *api.SamplePublicKeysRequest) []zapcore.Field {
 		zap.Uint32(logNPublicKeys, rq.NPublicKeys),
 	}
 }
+
+func logSamplePublicKeysRp(
+	rq *api.SamplePublicKeysRequest, rp *api.SamplePublicKeysResponse,
+) []zapcore.Field {
+	return []zapcore.Field{
+		zap.String(logOfEntityID, rq.OfEntityId),
+		zap.String(logRequersterEntityID, rq.RequesterEntityId),
+		zap.Int(logNPublicKeys, len(rp.PublicKeyDetails)),
+	}
+}

@@ -5,7 +5,6 @@ package acceptance
 import (
 	"context"
 	"encoding/hex"
-	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"net"
@@ -128,7 +127,7 @@ func testGet(t *testing.T, params *parameters, st *state) {
 
 func testSample(t *testing.T, params *parameters, st *state) {
 	for c := uint(0); c < params.nEntities; c++ {
-		entityID := fmt.Sprintf("Entity-%d", c)
+		entityID := GetTestEntityID(c)
 		rq := &api.SamplePublicKeysRequest{
 			OfEntityId:        entityID,
 			RequesterEntityId: "some requester",
@@ -139,8 +138,10 @@ func testSample(t *testing.T, params *parameters, st *state) {
 		cancel()
 		assert.Nil(t, err)
 		assert.Equal(t, 1, len(rp.PublicKeyDetails))
-		pkHex := hex.EncodeToString(rp.PublicKeyDetails[0].PublicKey)
-		assert.Equal(t, entityID, st.readerKeyEntities[pkHex])
+		if len(rp.PublicKeyDetails) == 1 {
+			pkHex := hex.EncodeToString(rp.PublicKeyDetails[0].PublicKey)
+			assert.Equal(t, entityID, st.readerKeyEntities[pkHex])
+		}
 	}
 }
 

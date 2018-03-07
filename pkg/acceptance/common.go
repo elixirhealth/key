@@ -21,5 +21,5 @@ func CreateTestEntityKeys(rng *rand.Rand, i, nKeyTypeKeys uint) (string, [][]byt
 
 // GetTestEntityID returns the ID for the i'th test entity.
 func GetTestEntityID(i uint) string {
-	return fmt.Sprintf("entity-%d", i)
+	return fmt.Sprintf("Entity-%d", i)
 }
