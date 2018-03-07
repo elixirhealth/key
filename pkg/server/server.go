@@ -49,7 +49,7 @@ func (k *Key) AddPublicKeys(
 	if err := api.ValidateAddPublicKeysRequest(rq); err != nil {
 		return nil, err
 	}
-	if n, err := k.storer.GetEntityPublicKeysCount(rq.EntityId, rq.KeyType); err != nil {
+	if n, err := k.storer.CountEntityPublicKeys(rq.EntityId, rq.KeyType); err != nil {
 		return nil, err
 	} else if n+len(rq.PublicKeys) > storage.MaxEntityKeyTypeKeys {
 		return nil, ErrTooManyActivePublicKeys

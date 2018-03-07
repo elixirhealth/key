@@ -16,6 +16,8 @@ var (
 
 func getStorer(config *Config, logger *zap.Logger) (storage.Storer, error) {
 	switch config.Storage.Type {
+	case bstorage.Memory:
+		return storage.NewMemoryStorer(config.Storage, logger), nil
 	case bstorage.DataStore:
 		return storage.NewDatastore(config.GCPProjectID, config.Storage, logger)
 	default:
