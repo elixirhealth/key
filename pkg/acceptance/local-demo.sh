@@ -43,13 +43,13 @@ key_containers="${name}"
 echo
 echo "testing key health..."
 docker run --rm --net=key ${KEY_IMAGE} test health \
-    --keys "${key_addrs}" \
+    --addresses "${key_addrs}" \
     --logLevel "${KEY_LOG_LEVEL}"
 
 echo
 echo "testing key ..."
 docker run --rm --net=key ${KEY_IMAGE} test io \
-    --keys "${key_addrs}" \
+    --addresses "${key_addrs}" \
     --logLevel "${KEY_LOG_LEVEL}"
 
 echo
