@@ -143,7 +143,7 @@ func TestDatastoreStorer_GetEntityPublicKeys_err(t *testing.T) {
 
 	// bad stored value
 	badKeys, badSpkds := toStoredMulti(api.NewTestPublicKeyDetails(rng, 1))
-	badSpkds[0].PublicKey = "*"
+	badSpkds[0].PublicKey = datastore.NameKey(publicKeyKind, "*", nil)
 	s = &datastoreStorer{
 		params: params,
 		client: &fixedDatastoreClient{},
@@ -195,7 +195,7 @@ func TestToFromStoredMulti(t *testing.T) {
 	assert.Equal(t, len(pkds1), len(sKeys))
 	assert.Equal(t, len(pkds1), len(spkds))
 	for i, sKey := range sKeys {
-		assert.Equal(t, sKey.Name, spkds[i].PublicKey)
+		assert.Equal(t, sKey.Name, spkds[i].PublicKey.Name)
 		assert.NotZero(t, spkds[i].AddedTime)
 		assert.NotZero(t, spkds[i].ModifiedTime)
 		assert.Zero(t, spkds[i].DisabledTime)
