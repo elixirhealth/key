@@ -20,13 +20,13 @@ import (
 const (
 	timeoutFlag = "timeout"
 
-	logEntityID     = "entity_id"
-	logKeyType      = "key_type"
-	logNKeys        = "n_keys"
-	logExpected     = "expected"
-	logActual       = "actual"
-	logAuthorKeyHex = "author_key_hex"
-	logReaderKeyHex = "reader_key_hex"
+	logEntityID          = "entity_id"
+	logKeyType           = "key_type"
+	logNKeys             = "n_keys"
+	logExpected          = "expected"
+	logActual            = "actual"
+	logAuthorKeyShortHex = "author_key_short_hex"
+	logReaderKeyShortHex = "reader_key_short_hex"
 )
 
 func testIO() error {
@@ -168,8 +168,8 @@ func logGetPublicKeysRp(
 		return err
 	}
 	logger.Info("got public key details",
-		zap.String(logAuthorKeyHex, hex.EncodeToString(authorKey)),
-		zap.String(logReaderKeyHex, hex.EncodeToString(readerKey)),
+		zap.String(logAuthorKeyShortHex, hex.EncodeToString(authorKey[:8])),
+		zap.String(logReaderKeyShortHex, hex.EncodeToString(readerKey[:8])),
 	)
 	return nil
 }
@@ -193,7 +193,10 @@ func logSamplePublicKeysRp(
 		)
 		return errors.New("unexpected entityID for sampled key")
 	}
-	logger.Info("sampled public key", zap.String(logEntityID, entityID))
+	logger.Info("sampled public key",
+		zap.String(logEntityID, entityID),
+		zap.String(logReaderKeyShortHex, pkHex),
+	)
 	return nil
 }
 
