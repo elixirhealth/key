@@ -30,7 +30,6 @@ func TestTestIO(t *testing.T) {
 
 	x := <-up
 	viper.Set(bcmd.AddressesFlag, fmt.Sprintf("localhost:%d", config.ServerPort))
-	viper.Set(bcmd.TimeoutFlag, 3)
 
 	err := testIO()
 	assert.Nil(t, err)
