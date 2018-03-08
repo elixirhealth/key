@@ -99,7 +99,7 @@ func getStorageType() (bstorage.Type, error) {
 		return bstorage.Memory, nil
 	}
 	if viper.GetBool(storageDataStoreFlag) {
-		return bstorage.Postgres, nil
+		return bstorage.DataStore, nil
 	}
 	return bstorage.Unspecified, errNoStorageType
 }
