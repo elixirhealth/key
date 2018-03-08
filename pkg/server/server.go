@@ -97,8 +97,9 @@ func (k *Key) SamplePublicKeys(
 	topOrdered := getOrderedLimit(allPKDs, orderKey, api.MaxSamplePublicKeysSize)
 	rng := rand.New(rand.NewSource(int64(time.Now().Nanosecond()))) // good enough
 	topSampled := sampleWithoutReplacement(topOrdered, rng, int(rq.NPublicKeys))
-	k.Logger.Info("sampled public keys", logSamplePublicKeysRq(rq)...)
-	return &api.SamplePublicKeysResponse{
+	rp := &api.SamplePublicKeysResponse{
 		PublicKeyDetails: topSampled,
-	}, nil
+	}
+	k.Logger.Info("sampled public keys", logSamplePublicKeysRp(rq, rp)...)
+	return rp, nil
 }

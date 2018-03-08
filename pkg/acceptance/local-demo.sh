@@ -5,7 +5,7 @@ set -eou pipefail
 
 docker_cleanup() {
     echo "cleaning up existing network and containers..."
-    CONTAINERS='libri|key'
+    CONTAINERS='key'
     docker ps | grep -E ${CONTAINERS} | awk '{print $1}' | xargs -I {} docker stop {} || true
     docker ps -a | grep -E ${CONTAINERS} | awk '{print $1}' | xargs -I {} docker rm {} || true
     docker network list | grep ${CONTAINERS} | awk '{print $2}' | xargs -I {} docker network rm {} || true
@@ -29,8 +29,6 @@ echo
 echo "creating key docker network..."
 docker network create key
 
-# TODO start and healthcheck dependency services
-
 echo
 echo "starting key..."
 port=10100
@@ -39,19 +37,20 @@ docker run --name "${name}" --net=key -d -p ${port}:${port} ${KEY_IMAGE} \
     start \
     --logLevel "${KEY_LOG_LEVEL}" \
     --serverPort ${port}
-    # TODO add other relevant args
 key_addrs="${name}:${port}"
 key_containers="${name}"
 
 echo
 echo "testing key health..."
 docker run --rm --net=key ${KEY_IMAGE} test health \
-    --keys "${key_addrs}" \
+    --addresses "${key_addrs}" \
     --logLevel "${KEY_LOG_LEVEL}"
 
 echo
 echo "testing key ..."
-# TODO
+docker run --rm --net=key ${KEY_IMAGE} test io \
+    --addresses "${key_addrs}" \
+    --logLevel "${KEY_LOG_LEVEL}"
 
 echo
 echo "cleaning up..."

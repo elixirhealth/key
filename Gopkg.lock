@@ -55,9 +55,10 @@
     "pkg/cmd",
     "pkg/server",
     "pkg/server/storage",
+    "pkg/util",
     "pkg/version"
   ]
-  revision = "60cc3f56dd73c0ab7e91c8d9b2085a68e70deb60"
+  revision = "6659a9524052cf3893625d6d01386709cb2d141d"
 
 [[projects]]
   name = "github.com/fsnotify/fsnotify"
@@ -160,6 +161,12 @@
   version = "v1.1.0"
 
 [[projects]]
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
+  version = "v0.8.0"
+
+[[projects]]
   name = "github.com/pmezard/go-difflib"
   packages = ["difflib"]
   revision = "792786c7400a136282c1664665ae0a8db921c6c2"
@@ -199,7 +206,7 @@
     "nfs",
     "xfs"
   ]
-  revision = "d274e363d5759d1c916232217be421f1cc89c5fe"
+  revision = "1c7ff3de94ae006f58cba483a4c9c6d7c61e1d98"
 
 [[projects]]
   name = "github.com/spf13/afero"
@@ -247,6 +254,22 @@
   version = "v1.2.1"
 
 [[projects]]
+  name = "go.opencensus.io"
+  packages = [
+    "internal",
+    "internal/tagencoding",
+    "plugin/ocgrpc",
+    "stats",
+    "stats/internal",
+    "stats/view",
+    "tag",
+    "trace",
+    "trace/propagation"
+  ]
+  revision = "52b12e1eb8fdf769ad0bf5fd73a2af9484e6b196"
+  version = "v0.4.0"
+
+[[projects]]
   name = "go.uber.org/atomic"
   packages = ["."]
   revision = "8474b86a5a6f79c443ce4b2992817ff32cf208b8"
@@ -284,7 +307,7 @@
     "lex/httplex",
     "trace"
   ]
-  revision = "22ae77b79946ea320088417e4d50825671d82d57"
+  revision = "07e8617a6db2368fa55d4616f371ee1b1403c817"
 
 [[projects]]
   branch = "master"
@@ -302,7 +325,7 @@
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
-  revision = "f6cff0780e542efa0c8e864dc8fa522808f6a598"
+  revision = "dd2ff4accc098aceecb86b36eaa7829b2a17b1c9"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -336,7 +359,7 @@
     "option",
     "transport/grpc"
   ]
-  revision = "ab90adb3efa287b869ecb698db42f923cc734972"
+  revision = "7f657476956314fee258816aaf81c0ff65cf8bee"
 
 [[projects]]
   name = "google.golang.org/appengine"
@@ -366,7 +389,7 @@
     "googleapis/rpc/status",
     "googleapis/type/latlng"
   ]
-  revision = "2d9486acae19cf9bd0c093d7dc236a323726a9e4"
+  revision = "df60624c1e9b9d2973e889c7a1cff73155da81c4"
 
 [[projects]]
   name = "google.golang.org/grpc"
@@ -412,6 +435,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "6205d233ce8d284d132581372a5af010651276c671ffbabc1a1574ee72a76224"
+  inputs-digest = "03d71344a17e03aa038e8a86879aaa2979bdcc728a8387bb3c7b5a818937e02e"
   solver-name = "gps-cdcl"
   solver-version = 1

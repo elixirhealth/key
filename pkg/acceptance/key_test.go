@@ -5,7 +5,6 @@ package acceptance
 import (
 	"context"
 	"encoding/hex"
-	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"net"
@@ -18,7 +17,6 @@ import (
 	"github.com/elxirhealth/key/pkg/server"
 	"github.com/elxirhealth/key/pkg/server/storage"
 	bstorage "github.com/elxirhealth/service-base/pkg/server/storage"
-	"github.com/elxirhealth/service-base/pkg/util"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
@@ -29,10 +27,10 @@ type parameters struct {
 	gcpProjectID string
 	logLevel     zapcore.Level
 
-	nEntities             uint
-	nKeysPerEntityKeyType uint
-	nGets                 uint
-	timeout               time.Duration
+	nEntities    uint
+	nKeyTypeKeys uint
+	nGets        uint
+	timeout      time.Duration
 }
 
 type state struct {
@@ -58,10 +56,10 @@ func TestAcceptance(t *testing.T) {
 		gcpProjectID: "dummy-acceptance-id",
 		logLevel:     zapcore.InfoLevel,
 
-		nEntities:             4,
-		nKeysPerEntityKeyType: 64,
-		nGets:   32,
-		timeout: 1 * time.Second,
+		nEntities:    4,
+		nKeyTypeKeys: 64,
+		nGets:        32,
+		timeout:      1 * time.Second,
 	}
 	st := setUp(params)
 
@@ -76,19 +74,13 @@ func TestAcceptance(t *testing.T) {
 
 func testAdd(t *testing.T, params *parameters, st *state) {
 	for c := uint(0); c < params.nEntities; c++ {
-		entityID := fmt.Sprintf("Entity-%d", c)
-		authorKeys := make([][]byte, params.nKeysPerEntityKeyType)
-		readerKeys := make([][]byte, params.nKeysPerEntityKeyType)
+		entityID, authorKeys, readerKeys := CreateTestEntityKeys(st.rng, c, params.nKeyTypeKeys)
 		st.entityAuthorKeys[entityID] = authorKeys
 		st.entityReaderKeys[entityID] = readerKeys
 		for i := range authorKeys {
-			authorKeys[i] = util.RandBytes(st.rng, 33)
-			readerKeys[i] = util.RandBytes(st.rng, 33)
 			st.authorKeyEntities[hex.EncodeToString(authorKeys[i])] = entityID
 			st.readerKeyEntities[hex.EncodeToString(readerKeys[i])] = entityID
 		}
-		st.entityAuthorKeys[entityID] = authorKeys
-		st.entityReaderKeys[entityID] = readerKeys
 
 		rq := &api.AddPublicKeysRequest{
 			EntityId:   entityID,
@@ -114,7 +106,7 @@ func testAdd(t *testing.T, params *parameters, st *state) {
 
 func testGet(t *testing.T, params *parameters, st *state) {
 	for c := uint(0); c < params.nGets; c++ {
-		entityID := fmt.Sprintf("Entity-%d", c%4)
+		entityID := GetTestEntityID(c % 4)
 		// get one random author key, and one random reader key
 		authorKey := st.entityAuthorKeys[entityID][st.rng.Intn(len(st.entityAuthorKeys))]
 		readerKey := st.entityReaderKeys[entityID][st.rng.Intn(len(st.entityReaderKeys))]
@@ -135,7 +127,7 @@ func testGet(t *testing.T, params *parameters, st *state) {
 
 func testSample(t *testing.T, params *parameters, st *state) {
 	for c := uint(0); c < params.nEntities; c++ {
-		entityID := fmt.Sprintf("Entity-%d", c)
+		entityID := GetTestEntityID(c)
 		rq := &api.SamplePublicKeysRequest{
 			OfEntityId:        entityID,
 			RequesterEntityId: "some requester",
@@ -146,8 +138,10 @@ func testSample(t *testing.T, params *parameters, st *state) {
 		cancel()
 		assert.Nil(t, err)
 		assert.Equal(t, 1, len(rp.PublicKeyDetails))
-		pkHex := hex.EncodeToString(rp.PublicKeyDetails[0].PublicKey)
-		assert.Equal(t, entityID, st.readerKeyEntities[pkHex])
+		if len(rp.PublicKeyDetails) == 1 {
+			pkHex := hex.EncodeToString(rp.PublicKeyDetails[0].PublicKey)
+			assert.Equal(t, entityID, st.readerKeyEntities[pkHex])
+		}
 	}
 }
 

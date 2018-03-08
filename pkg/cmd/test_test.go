@@ -1,13 +1,23 @@
 package cmd
 
-/* TODO (drausin) enable once have in-memory storer
+import (
+	"fmt"
+	"sync"
+	"testing"
+
+	"github.com/elxirhealth/key/pkg/server"
+	bcmd "github.com/elxirhealth/service-base/pkg/cmd"
+	"github.com/spf13/viper"
+	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap/zapcore"
+)
+
 func TestTestIO(t *testing.T) {
-	// start in-memory key w/o librarians, so all libri puts will just be queued
+	// start in-memory key
 	config := server.NewDefaultConfig()
 	config.LogLevel = zapcore.DebugLevel
 	config.ServerPort = 10200
 	config.MetricsPort = 10201
-	// TODO set other server configs
 
 	up := make(chan *server.Key, 1)
 	wg1 := new(sync.WaitGroup)
@@ -19,8 +29,7 @@ func TestTestIO(t *testing.T) {
 	}(wg1)
 
 	x := <-up
-	viper.Set(cmd.AddressesFlag, fmt.Sprintf("localhost:%d", config.ServerPort))
-	// TODO set other I/O test configs
+	viper.Set(bcmd.AddressesFlag, fmt.Sprintf("localhost:%d", config.ServerPort))
 
 	err := testIO()
 	assert.Nil(t, err)
@@ -28,4 +37,3 @@ func TestTestIO(t *testing.T) {
 	x.StopServer()
 	wg1.Wait()
 }
-*/

@@ -66,7 +66,13 @@ func TestMemoryStorer_GetEntityPublicKeys_ok(t *testing.T) {
 
 	pkds2, err := s.GetEntityPublicKeys(pkds1[0].EntityId)
 	assert.Nil(t, err)
-	assert.True(t, len(pkds2) > 0)
+	expectedN := 0
+	for _, pkd1 := range pkds1 {
+		if pkd1.EntityId == pkds1[0].EntityId && pkd1.KeyType == api.KeyType_READER {
+			expectedN++
+		}
+	}
+	assert.Equal(t, expectedN, len(pkds2))
 }
 
 func TestMemoryStorer_GetEntityPublicKeys_err(t *testing.T) {
@@ -89,9 +95,16 @@ func TestMemoryStorer_CountEntityPublicKeys_ok(t *testing.T) {
 	err := s.AddPublicKeys(pkds1)
 	assert.Nil(t, err)
 
-	n, err := s.CountEntityPublicKeys(pkds1[0].EntityId, api.KeyType_AUTHOR)
+	kt := api.KeyType_AUTHOR
+	n, err := s.CountEntityPublicKeys(pkds1[0].EntityId, kt)
 	assert.Nil(t, err)
-	assert.True(t, n > 0)
+	expectedN := 0
+	for _, pkd1 := range pkds1 {
+		if pkd1.EntityId == pkds1[0].EntityId && pkd1.KeyType == kt {
+			expectedN++
+		}
+	}
+	assert.Equal(t, expectedN, n)
 }
 
 func TestMemoryStorer_CountEntityPublicKeys_err(t *testing.T) {
