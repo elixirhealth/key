@@ -193,9 +193,10 @@ func logSamplePublicKeysRp(
 		)
 		return errors.New("unexpected entityID for sampled key")
 	}
+	pkShortHex := hex.EncodeToString(rp.PublicKeyDetails[0].PublicKey[:8])
 	logger.Info("sampled public key",
 		zap.String(logEntityID, entityID),
-		zap.String(logReaderKeyShortHex, pkHex),
+		zap.String(logReaderKeyShortHex, pkShortHex),
 	)
 	return nil
 }
