@@ -7,10 +7,6 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-const (
-// TODO add default config values here
-)
-
 // Config is the config for a Key instance.
 type Config struct {
 	*server.BaseConfig
@@ -25,7 +21,6 @@ func NewDefaultConfig() *Config {
 	}
 	return config.
 		WithDefaultStorage()
-	// TODO add .WithDefaultCONFIGELEMENT for each CONFIGELEMENT
 }
 
 // MarshalLogObject writes the config to the given object encoder.
@@ -34,8 +29,6 @@ func (c *Config) MarshalLogObject(oe zapcore.ObjectEncoder) error {
 	errors.MaybePanic(err) // should never happen
 	err = oe.AddObject(logStorage, c.Storage)
 	errors.MaybePanic(err) // should never happen
-
-	// TODO add other config elements
 	return nil
 }
 

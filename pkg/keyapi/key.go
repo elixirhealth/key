@@ -53,8 +53,16 @@ func ValidateAddPublicKeysRequest(rq *AddPublicKeysRequest) error {
 	return nil
 }
 
-// ValidateGetPublicKeysRequest checks that the request has the public keys present.
+// ValidateGetPublicKeysRequest checks that the entity ID field is not empty.
 func ValidateGetPublicKeysRequest(rq *GetPublicKeysRequest) error {
+	if rq.EntityId == "" {
+		return ErrEmptyEntityID
+	}
+	return nil
+}
+
+// ValidateGetPublicKeyDetailsRequest checks that the request has the public keys present.
+func ValidateGetPublicKeyDetailsRequest(rq *GetPublicKeyDetailsRequest) error {
 	return ValidatePublicKeys(rq.PublicKeys)
 }
 

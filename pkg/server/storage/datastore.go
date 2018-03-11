@@ -29,9 +29,9 @@ type PublicKeyDetail struct {
 	KeyType      string         `datastore:"key_type"`
 	Disabled     bool           `datastore:"disabled"`
 	ModifiedDate int32          `datastore:"modified_date"`
-	ModifiedTime time.Time      `datastore:"modified_time"`
-	AddedTime    time.Time      `datastore:"added_time"`
-	DisabledTime time.Time      `datastore:"disabled_time"`
+	ModifiedTime time.Time      `datastore:"modified_time,noindex"`
+	AddedTime    time.Time      `datastore:"added_time,noindex"`
+	DisabledTime time.Time      `datastore:"disabled_time,noindex"`
 }
 
 type datastoreStorer struct {
@@ -41,7 +41,7 @@ type datastoreStorer struct {
 	logger *zap.Logger
 }
 
-// NewDatastore creates a new Store backed by a GCP DataStore instance.
+// NewDatastore creates a new Storer backed by a GCP DataStore instance.
 func NewDatastore(gcpProjectID string, params *Parameters, logger *zap.Logger) (Storer, error) {
 	client, err := datastore.NewClient(context.Background(), gcpProjectID)
 	if err != nil {

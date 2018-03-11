@@ -62,21 +62,43 @@ func (k *Key) AddPublicKeys(
 	return &api.AddPublicKeysResponse{}, nil
 }
 
-// GetPublicKeys gets the details (including their associated entity IDs) for a given set of public
-// keys.
+// GetPublicKeys returns the public keys of a given type for a given entity ID.
 func (k *Key) GetPublicKeys(
 	ctx context.Context, rq *api.GetPublicKeysRequest,
 ) (*api.GetPublicKeysResponse, error) {
-	k.Logger.Debug("received get public keys request", zap.Int(logNKeys, len(rq.PublicKeys)))
+	k.Logger.Debug("received get public keys request", logGetPublicKeysRq(rq)...)
 	if err := api.ValidateGetPublicKeysRequest(rq); err != nil {
+		return nil, err
+	}
+	pkds, err := k.storer.GetEntityPublicKeys(rq.EntityId)
+	if err != nil {
+		return nil, err
+	}
+	pks := make([][]byte, len(pkds))
+	for i, pkd := range pkds {
+		pks[i] = pkd.PublicKey
+	}
+	rp := &api.GetPublicKeysResponse{PublicKeys: pks}
+	k.Logger.Info("got public keys", logGetPublicKeysRp(rq, rp)...)
+	return rp, nil
+}
+
+// GetPublicKeyDetails gets the details (including their associated entity IDs) for a given set of
+// public keys.
+func (k *Key) GetPublicKeyDetails(
+	ctx context.Context, rq *api.GetPublicKeyDetailsRequest,
+) (*api.GetPublicKeyDetailsResponse, error) {
+	k.Logger.Debug("received get public key details request",
+		zap.Int(logNKeys, len(rq.PublicKeys)))
+	if err := api.ValidateGetPublicKeyDetailsRequest(rq); err != nil {
 		return nil, err
 	}
 	pkds, err := k.storer.GetPublicKeys(rq.PublicKeys)
 	if err != nil {
 		return nil, err
 	}
-	k.Logger.Info("got public keys", zap.Int(logNKeys, len(pkds)))
-	return &api.GetPublicKeysResponse{
+	k.Logger.Info("got public key details", zap.Int(logNKeys, len(pkds)))
+	return &api.GetPublicKeyDetailsResponse{
 		PublicKeyDetails: pkds,
 	}, nil
 }

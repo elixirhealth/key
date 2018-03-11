@@ -24,6 +24,23 @@ func logAddPublicKeysRq(rq *api.AddPublicKeysRequest) []zapcore.Field {
 	}
 }
 
+func logGetPublicKeysRq(rq *api.GetPublicKeysRequest) []zapcore.Field {
+	return []zapcore.Field{
+		zap.String(logEntityID, rq.EntityId),
+		zap.Stringer(logKeyType, rq.KeyType),
+	}
+}
+
+func logGetPublicKeysRp(
+	rq *api.GetPublicKeysRequest, rp *api.GetPublicKeysResponse,
+) []zapcore.Field {
+	return []zapcore.Field{
+		zap.String(logEntityID, rq.EntityId),
+		zap.Stringer(logKeyType, rq.KeyType),
+		zap.Int(logNKeys, len(rp.PublicKeys)),
+	}
+}
+
 func logSamplePublicKeysRq(rq *api.SamplePublicKeysRequest) []zapcore.Field {
 	return []zapcore.Field{
 		zap.String(logOfEntityID, rq.OfEntityId),
