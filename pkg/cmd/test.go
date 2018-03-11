@@ -67,8 +67,8 @@ func testIO() error {
 		ctx, cancel := context.WithTimeout(context.Background(), timeout)
 		_, err := client.AddPublicKeys(ctx, rq)
 		cancel()
-		if logAddPublicKeysRq(logger, rq, err) != nil {
-			return err
+		if err2 := logAddPublicKeysRq(logger, rq, err); err2 != nil {
+			return err2
 		}
 
 		rq = &api.AddPublicKeysRequest{
@@ -94,14 +94,14 @@ func testIO() error {
 		authorEntityID := authorKeyEntities[hex.EncodeToString(authorKey)]
 		readerEntityID := readerKeyEntities[hex.EncodeToString(readerKey)]
 
-		rq := &api.GetPublicKeysRequest{
+		rq := &api.GetPublicKeyDetailsRequest{
 			PublicKeys: [][]byte{authorKey, readerKey},
 		}
 		client := clients[rng.Int31n(int32(len(clients)))]
 		ctx, cancel := context.WithTimeout(context.Background(), timeout)
-		rp, err := client.GetPublicKeys(ctx, rq)
+		rp, err := client.GetPublicKeyDetails(ctx, rq)
 		cancel()
-		err2 := logGetPublicKeysRp(logger, authorEntityID, readerEntityID, authorKey,
+		err2 := logGetPublicKeyDetailsRp(logger, authorEntityID, readerEntityID, authorKey,
 			readerKey, rp, err)
 		if err2 != nil {
 			return err
@@ -143,11 +143,11 @@ func logAddPublicKeysRq(logger *zap.Logger, rq *api.AddPublicKeysRequest, err er
 	return nil
 }
 
-func logGetPublicKeysRp(
+func logGetPublicKeyDetailsRp(
 	logger *zap.Logger,
 	authorEntityID, readerEntityID string,
 	authorKey, readerKey []byte,
-	rp *api.GetPublicKeysResponse, err error,
+	rp *api.GetPublicKeyDetailsResponse, err error,
 ) error {
 	if err != nil {
 		logger.Error("get public keys failed", zap.Error(err))

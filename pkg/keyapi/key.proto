@@ -2,14 +2,12 @@ syntax = "proto3";
 
 package keyapi;
 
+// TODO (drausin) comments
 service Key {
     rpc AddPublicKeys (AddPublicKeysRequest) returns (AddPublicKeysResponse) {}
     rpc GetPublicKeys (GetPublicKeysRequest) returns (GetPublicKeysResponse) {}
     rpc SamplePublicKeys (SamplePublicKeysRequest) returns (SamplePublicKeysResponse) {}
-
-    // TODO (drausin)
-    // rpc DisablePublicKeys (DisablePublicKeysRequest) returns (DisablePublicKeysResponse) {}
-
+    rpc GetPublicKeyDetails (GetPublicKeyDetailsRequest) returns (GetPublicKeyDetailsResponse) {}
 }
 
 message AddPublicKeysRequest {
@@ -20,12 +18,21 @@ message AddPublicKeysRequest {
 
 message AddPublicKeysResponse {}
 
-message GetPublicKeysRequest {
+message GetPublicKeyDetailsRequest {
     repeated bytes public_keys = 3;
 }
 
-message GetPublicKeysResponse {
+message GetPublicKeyDetailsResponse {
     repeated PublicKeyDetail public_key_details = 1;
+}
+
+message GetPublicKeysRequest {
+    string entity_id = 1;
+    KeyType key_type = 2;
+}
+
+message GetPublicKeysResponse {
+    repeated bytes public_keys = 3;
 }
 
 message SamplePublicKeysRequest {

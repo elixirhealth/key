@@ -67,6 +67,8 @@ func TestAcceptance(t *testing.T) {
 
 	testGet(t, params, st)
 
+	testGetDetails(t, params, st)
+
 	testSample(t, params, st)
 
 	tearDown(st)
@@ -105,6 +107,30 @@ func testAdd(t *testing.T, params *parameters, st *state) {
 }
 
 func testGet(t *testing.T, params *parameters, st *state) {
+	for c := uint(0); c < params.nEntities; c++ {
+		entityID := GetTestEntityID(c % 4)
+		rq := &api.GetPublicKeysRequest{
+			EntityId: entityID,
+			KeyType:  api.KeyType_READER,
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), params.timeout)
+		rp, err := st.randClient().GetPublicKeys(ctx, rq)
+		cancel()
+		assert.Nil(t, err)
+		assert.Equal(t, len(st.entityReaderKeys[entityID]), len(rp.PublicKeys))
+		assert.Equal(t, getPKSet(st.entityReaderKeys[entityID]), getPKSet(rp.PublicKeys))
+	}
+}
+
+func getPKSet(pks [][]byte) map[string]struct{} {
+	pkSet := make(map[string]struct{})
+	for _, pk := range pks {
+		pkSet[hex.EncodeToString(pk)] = struct{}{}
+	}
+	return pkSet
+}
+
+func testGetDetails(t *testing.T, params *parameters, st *state) {
 	for c := uint(0); c < params.nGets; c++ {
 		entityID := GetTestEntityID(c % 4)
 		// get one random author key, and one random reader key
@@ -113,11 +139,11 @@ func testGet(t *testing.T, params *parameters, st *state) {
 		authorEntityID := st.authorKeyEntities[hex.EncodeToString(authorKey)]
 		readerEntityID := st.readerKeyEntities[hex.EncodeToString(readerKey)]
 
-		rq := &api.GetPublicKeysRequest{
+		rq := &api.GetPublicKeyDetailsRequest{
 			PublicKeys: [][]byte{authorKey, readerKey},
 		}
 		ctx, cancel := context.WithTimeout(context.Background(), params.timeout)
-		rp, err := st.randClient().GetPublicKeys(ctx, rq)
+		rp, err := st.randClient().GetPublicKeyDetails(ctx, rq)
 		cancel()
 		assert.Nil(t, err)
 		assert.Equal(t, authorEntityID, rp.PublicKeyDetails[0].EntityId)

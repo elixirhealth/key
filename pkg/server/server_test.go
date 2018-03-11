@@ -111,6 +111,41 @@ func TestKey_AddPublicKeys_err(t *testing.T) {
 
 func TestKey_GetPublicKeys_ok(t *testing.T) {
 	rng := rand.New(rand.NewSource(0))
+	n := 2
+	k := &Key{
+		BaseServer: bserver.NewBaseServer(bserver.NewDefaultBaseConfig()),
+		storer: &fixedStorer{
+			getEntityPKs: api.NewTestPublicKeyDetails(rng, n),
+		},
+	}
+	rq := &api.GetPublicKeysRequest{EntityId: "some entity ID"}
+	rp, err := k.GetPublicKeys(context.Background(), rq)
+	assert.Nil(t, err)
+	assert.NotNil(t, rp)
+	assert.Equal(t, n, len(rp.PublicKeys))
+}
+
+func TestKey_GetPublicKeys_err(t *testing.T) {
+	k := &Key{
+		BaseServer: bserver.NewBaseServer(bserver.NewDefaultBaseConfig()),
+		storer:     &fixedStorer{getEntityPKsErr: errTest},
+	}
+
+	// bad request
+	rq := &api.GetPublicKeysRequest{}
+	rp, err := k.GetPublicKeys(context.Background(), rq)
+	assert.NotNil(t, err)
+	assert.Nil(t, rp)
+
+	// storer error
+	rq = &api.GetPublicKeysRequest{EntityId: "some entity ID"}
+	rp, err = k.GetPublicKeys(context.Background(), rq)
+	assert.Equal(t, errTest, err)
+	assert.Nil(t, rp)
+}
+
+func TestKey_GetPublicKeyDetails_ok(t *testing.T) {
+	rng := rand.New(rand.NewSource(0))
 	pks := [][]byte{
 		util.RandBytes(rng, 33),
 		util.RandBytes(rng, 33),
@@ -121,14 +156,14 @@ func TestKey_GetPublicKeys_ok(t *testing.T) {
 			getPKDs: api.NewTestPublicKeyDetails(rng, len(pks)),
 		},
 	}
-	rq := &api.GetPublicKeysRequest{PublicKeys: pks}
-	rp, err := k.GetPublicKeys(context.Background(), rq)
+	rq := &api.GetPublicKeyDetailsRequest{PublicKeys: pks}
+	rp, err := k.GetPublicKeyDetails(context.Background(), rq)
 	assert.Nil(t, err)
 	assert.NotNil(t, rp)
-	assert.Equal(t, len(pks), len(rq.PublicKeys))
+	assert.Equal(t, len(pks), len(rp.PublicKeyDetails))
 }
 
-func TestKey_GetPublicKeys_err(t *testing.T) {
+func TestKey_GetPublicKeyDetails_err(t *testing.T) {
 	rng := rand.New(rand.NewSource(0))
 	k := &Key{
 		BaseServer: bserver.NewBaseServer(bserver.NewDefaultBaseConfig()),
@@ -136,19 +171,19 @@ func TestKey_GetPublicKeys_err(t *testing.T) {
 	}
 
 	// bad request
-	rq := &api.GetPublicKeysRequest{}
-	rp, err := k.GetPublicKeys(context.Background(), rq)
+	rq := &api.GetPublicKeyDetailsRequest{}
+	rp, err := k.GetPublicKeyDetails(context.Background(), rq)
 	assert.NotNil(t, err)
 	assert.Nil(t, rp)
 
 	// storer error
-	rq = &api.GetPublicKeysRequest{
+	rq = &api.GetPublicKeyDetailsRequest{
 		PublicKeys: [][]byte{
 			util.RandBytes(rng, 33),
 			util.RandBytes(rng, 33),
 		},
 	}
-	rp, err = k.GetPublicKeys(context.Background(), rq)
+	rp, err = k.GetPublicKeyDetails(context.Background(), rq)
 	assert.Equal(t, errTest, err)
 	assert.Nil(t, rp)
 }

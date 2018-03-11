@@ -45,17 +45,39 @@ func TestValidateGetPublicKeysRequest(t *testing.T) {
 	}{
 		"ok": {
 			rq: &GetPublicKeysRequest{
+				EntityId: "some entity ID",
+			},
+			expected: nil,
+		},
+		"missing entity ID": {
+			rq:       &GetPublicKeysRequest{},
+			expected: ErrEmptyEntityID,
+		},
+	}
+	for _, c := range cases {
+		err := ValidateGetPublicKeysRequest(c.rq)
+		assert.Equal(t, c.expected, err)
+	}
+}
+
+func TestValidateGetPublicKeyDetailsRequest(t *testing.T) {
+	cases := map[string]struct {
+		rq       *GetPublicKeyDetailsRequest
+		expected error
+	}{
+		"ok": {
+			rq: &GetPublicKeyDetailsRequest{
 				PublicKeys: [][]byte{{1, 2, 3}},
 			},
 			expected: nil,
 		},
 		"missing public keys": {
-			rq:       &GetPublicKeysRequest{},
+			rq:       &GetPublicKeyDetailsRequest{},
 			expected: ErrEmptyPublicKeys,
 		},
 	}
 	for _, c := range cases {
-		err := ValidateGetPublicKeysRequest(c.rq)
+		err := ValidateGetPublicKeyDetailsRequest(c.rq)
 		assert.Equal(t, c.expected, err)
 	}
 }
