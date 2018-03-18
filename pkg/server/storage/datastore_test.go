@@ -85,7 +85,9 @@ func TestDatastoreStorer_GetPublicKeys_err(t *testing.T) {
 	assert.Nil(t, pkds)
 
 	// missing key
-	s.client = &fixedDatastoreClient{getMultiErr: datastore.ErrNoSuchEntity}
+	s.client = &fixedDatastoreClient{
+		getMultiErr: datastore.MultiError{datastore.ErrNoSuchEntity},
+	}
 	pkds, err = s.GetPublicKeys(pubKeys)
 	assert.Equal(t, api.ErrNoSuchPublicKey, err)
 	assert.Nil(t, pkds)
