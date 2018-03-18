@@ -77,7 +77,8 @@ func (s *datastoreStorer) GetPublicKeys(pks [][]byte) ([]*api.PublicKeyDetail, e
 	sKeys := toStoredKeys(pks)
 	ctx, cancel := context.WithTimeout(context.Background(), s.params.GetQueryTimeout)
 	defer cancel()
-	if err := s.client.GetMulti(ctx, sKeys, spkds); err == datastore.ErrNoSuchEntity {
+	err := s.client.GetMulti(ctx, sKeys, spkds)
+	if err != nil && firstMultiErrNotNil(err) == datastore.ErrNoSuchEntity {
 		return nil, api.ErrNoSuchPublicKey
 	} else if err != nil {
 		return nil, err
@@ -88,6 +89,18 @@ func (s *datastoreStorer) GetPublicKeys(pks [][]byte) ([]*api.PublicKeyDetail, e
 	}
 	s.logger.Debug("got public keys from storage", zap.Int(logNPublicKeys, len(pkds)))
 	return pkds, nil
+}
+
+func firstMultiErrNotNil(err error) error {
+	switch et := err.(type) {
+	case datastore.MultiError:
+		for _, e := range et {
+			if e != nil {
+				return e
+			}
+		}
+	}
+	return err
 }
 
 func (s *datastoreStorer) GetEntityPublicKeys(entityID string) ([]*api.PublicKeyDetail, error) {
