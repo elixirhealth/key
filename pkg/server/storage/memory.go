@@ -48,7 +48,7 @@ func (s *memoryStorer) GetPublicKeys(pks [][]byte) ([]*api.PublicKeyDetail, erro
 		s.mu.Lock()
 		pkd, in := s.pkds[pkHex]
 		if !in {
-			return nil, ErrNoSuchPublicKey
+			return nil, api.ErrNoSuchPublicKey
 		}
 		pkds = append(pkds, pkd)
 		s.mu.Unlock()

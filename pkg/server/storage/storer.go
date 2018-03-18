@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"errors"
 	"time"
 
 	api "github.com/elxirhealth/key/pkg/keyapi"
@@ -18,11 +17,6 @@ const (
 
 	// DefaultQueryTimeout is the default timeout for DataStore queries.
 	DefaultQueryTimeout = 1 * time.Second
-)
-
-var (
-	// ErrNoSuchPublicKey indicates when details for a requested public key do not exist.
-	ErrNoSuchPublicKey = errors.New("not details found for given public key")
 )
 
 // Storer manages public key details.
