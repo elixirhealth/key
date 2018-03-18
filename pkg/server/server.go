@@ -10,6 +10,8 @@ import (
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"golang.org/x/net/context"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 var (
@@ -94,7 +96,9 @@ func (k *Key) GetPublicKeyDetails(
 		return nil, err
 	}
 	pkds, err := k.storer.GetPublicKeys(rq.PublicKeys)
-	if err != nil {
+	if err != nil && err == api.ErrNoSuchPublicKey {
+		return nil, status.Error(codes.NotFound, err.Error())
+	} else if err != nil {
 		return nil, err
 	}
 	k.Logger.Info("got public key details", zap.Int(logNKeys, len(pkds)))

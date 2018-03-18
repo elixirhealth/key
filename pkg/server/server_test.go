@@ -12,6 +12,8 @@ import (
 	"github.com/elxirhealth/service-base/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 var (
@@ -185,6 +187,17 @@ func TestKey_GetPublicKeyDetails_err(t *testing.T) {
 	}
 	rp, err = k.GetPublicKeyDetails(context.Background(), rq)
 	assert.Equal(t, errTest, err)
+	assert.Nil(t, rp)
+
+	// no such pub key
+	k = &Key{
+		BaseServer: bserver.NewBaseServer(bserver.NewDefaultBaseConfig()),
+		storer:     &fixedStorer{getErr: api.ErrNoSuchPublicKey},
+	}
+	rp, err = k.GetPublicKeyDetails(context.Background(), rq)
+	assert.NotNil(t, err)
+	assert.Equal(t, codes.NotFound, status.Code(err))
+	assert.Equal(t, api.ErrNoSuchPublicKey.Error(), status.Convert(err).Message())
 	assert.Nil(t, rp)
 }
 
