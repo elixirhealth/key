@@ -52,6 +52,11 @@ func TestMemoryStorer_GetPublicKeys_err(t *testing.T) {
 	pkds, err = s.GetPublicKeys([][]byte{{1, 2, 3}})
 	assert.Equal(t, api.ErrNoSuchPublicKey, err)
 	assert.Nil(t, pkds)
+
+	// missing key again, to check lock
+	pkds, err = s.GetPublicKeys([][]byte{{1, 2, 3}})
+	assert.Equal(t, api.ErrNoSuchPublicKey, err)
+	assert.Nil(t, pkds)
 }
 
 func TestMemoryStorer_GetEntityPublicKeys_ok(t *testing.T) {
