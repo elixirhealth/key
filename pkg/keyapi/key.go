@@ -40,6 +40,9 @@ var (
 	// larger than the maximum value.
 	ErrNPublicKeysTooLarge = fmt.Errorf("number of public keys larger than maximum value %d",
 		MaxSamplePublicKeysSize)
+
+	// ErrNoSuchPublicKey indicates when details for a requested public key do not exist.
+	ErrNoSuchPublicKey = errors.New("no details found for given public key")
 )
 
 // ValidateAddPublicKeysRequest checks that the request has the entity ID and public keys present.
