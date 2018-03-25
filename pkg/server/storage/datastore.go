@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"cloud.google.com/go/datastore"
-	api "github.com/elxirhealth/key/pkg/keyapi"
-	bstorage "github.com/elxirhealth/service-base/pkg/server/storage"
+	api "github.com/elixirhealth/key/pkg/keyapi"
+	bstorage "github.com/elixirhealth/service-base/pkg/server/storage"
 	"go.uber.org/zap"
 	"google.golang.org/api/iterator"
 )

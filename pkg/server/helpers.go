@@ -3,9 +3,9 @@ package server
 import (
 	"errors"
 
-	api "github.com/elxirhealth/key/pkg/keyapi"
-	"github.com/elxirhealth/key/pkg/server/storage"
-	bstorage "github.com/elxirhealth/service-base/pkg/server/storage"
+	api "github.com/elixirhealth/key/pkg/keyapi"
+	"github.com/elixirhealth/key/pkg/server/storage"
+	bstorage "github.com/elixirhealth/service-base/pkg/server/storage"
 	"go.uber.org/zap"
 )
 
