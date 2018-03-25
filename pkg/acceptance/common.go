@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 
-	"github.com/elxirhealth/service-base/pkg/util"
+	"github.com/elixirhealth/service-base/pkg/util"
 )
 
 // CreateTestEntityKeys creates a new entity (from index i) and some random author and reader

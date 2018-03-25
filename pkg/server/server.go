@@ -4,9 +4,9 @@ import (
 	"math/rand"
 	"time"
 
-	api "github.com/elxirhealth/key/pkg/keyapi"
-	"github.com/elxirhealth/key/pkg/server/storage"
-	"github.com/elxirhealth/service-base/pkg/server"
+	api "github.com/elixirhealth/key/pkg/keyapi"
+	"github.com/elixirhealth/key/pkg/server/storage"
+	"github.com/elixirhealth/service-base/pkg/server"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"golang.org/x/net/context"

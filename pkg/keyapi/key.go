@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 
-	"github.com/elxirhealth/service-base/pkg/util"
+	"github.com/elixirhealth/service-base/pkg/util"
 	"github.com/pkg/errors"
 )
 

@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"cloud.google.com/go/datastore"
-	api "github.com/elxirhealth/key/pkg/keyapi"
+	api "github.com/elixirhealth/key/pkg/keyapi"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"

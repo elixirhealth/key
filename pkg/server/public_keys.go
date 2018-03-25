@@ -8,7 +8,7 @@ import (
 	"io"
 
 	cerrors "github.com/drausin/libri/libri/common/errors"
-	api "github.com/elxirhealth/key/pkg/keyapi"
+	api "github.com/elixirhealth/key/pkg/keyapi"
 )
 
 const (

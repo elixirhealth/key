@@ -1,7 +1,7 @@
 package storage
 
 import (
-	api "github.com/elxirhealth/key/pkg/keyapi"
+	api "github.com/elixirhealth/key/pkg/keyapi"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
