@@ -58,7 +58,7 @@
     "pkg/util",
     "pkg/version"
   ]
-  revision = "6659a9524052cf3893625d6d01386709cb2d141d"
+  revision = "0ac1d7440a84122b037e7bcc89aec0fd608c85f1"
 
 [[projects]]
   name = "github.com/fsnotify/fsnotify"
@@ -435,6 +435,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "03d71344a17e03aa038e8a86879aaa2979bdcc728a8387bb3c7b5a818937e02e"
+  inputs-digest = "997057371f21484c9723c1597ac6f2abc3e751cd31387d8e7a810e6b06feb16e"
   solver-name = "gps-cdcl"
   solver-version = 1
