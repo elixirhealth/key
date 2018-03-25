@@ -19,7 +19,7 @@ KEY_TIMEOUT="${KEY_TIMEOUT:-5}"  # 10, or 20 for really sketchy network
 LOCAL_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # container command constants
-KEY_IMAGE="gcr.io/elxir-core-infra/key:snapshot" # develop
+KEY_IMAGE="gcr.io/elixir-core-prod/key:snapshot" # develop
 
 echo
 echo "cleaning up from previous runs..."
