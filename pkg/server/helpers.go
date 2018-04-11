@@ -5,6 +5,8 @@ import (
 
 	api "github.com/elixirhealth/key/pkg/keyapi"
 	"github.com/elixirhealth/key/pkg/server/storage"
+	"github.com/elixirhealth/key/pkg/server/storage/datastore"
+	"github.com/elixirhealth/key/pkg/server/storage/memory"
 	bstorage "github.com/elixirhealth/service-base/pkg/server/storage"
 	"go.uber.org/zap"
 )
@@ -17,9 +19,9 @@ var (
 func getStorer(config *Config, logger *zap.Logger) (storage.Storer, error) {
 	switch config.Storage.Type {
 	case bstorage.Memory:
-		return storage.NewMemoryStorer(config.Storage, logger), nil
+		return memory.New(config.Storage, logger), nil
 	case bstorage.DataStore:
-		return storage.NewDatastore(config.GCPProjectID, config.Storage, logger)
+		return datastore.New(config.GCPProjectID, config.Storage, logger)
 	default:
 		return nil, ErrInvalidStorageType
 	}

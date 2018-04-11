@@ -15,6 +15,10 @@ const (
 	// DefaultMaxBatchSize is the maximum size of a batch of public keys.
 	DefaultMaxBatchSize = 64
 
+	// MaxEntityKeyTypeKeys indicates the maximum number of public keys an entity can have for
+	// a given key type.
+	MaxEntityKeyTypeKeys = 256
+
 	// DefaultQueryTimeout is the default timeout for DataStore queries.
 	DefaultQueryTimeout = 1 * time.Second
 )

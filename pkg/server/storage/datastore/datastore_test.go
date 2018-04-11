@@ -1,4 +1,4 @@
-package storage
+package datastore
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 
 	"cloud.google.com/go/datastore"
 	api "github.com/elixirhealth/key/pkg/keyapi"
+	"github.com/elixirhealth/key/pkg/server/storage"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
@@ -19,7 +20,7 @@ var (
 
 func TestDatastoreStorer_AddGetPublicKeys_ok(t *testing.T) {
 	rng := rand.New(rand.NewSource(0))
-	params := NewDefaultParameters()
+	params := storage.NewDefaultParameters()
 	lg := zap.NewNop()
 	s := &datastoreStorer{
 		params: params,
@@ -44,7 +45,7 @@ func TestDatastoreStorer_AddGetPublicKeys_ok(t *testing.T) {
 
 func TestDatastoreStorer_AddPublicKeys_err(t *testing.T) {
 	rng := rand.New(rand.NewSource(0))
-	params := NewDefaultParameters()
+	params := storage.NewDefaultParameters()
 	lg := zap.NewNop()
 	s := &datastoreStorer{
 		params: params,
@@ -66,7 +67,7 @@ func TestDatastoreStorer_AddPublicKeys_err(t *testing.T) {
 
 func TestDatastoreStorer_GetPublicKeys_err(t *testing.T) {
 	rng := rand.New(rand.NewSource(0))
-	params := NewDefaultParameters()
+	params := storage.NewDefaultParameters()
 	lg := zap.NewNop()
 	s := &datastoreStorer{
 		params: params,
@@ -101,7 +102,7 @@ func TestDatastoreStorer_GetPublicKeys_err(t *testing.T) {
 
 func TestDatastoreStorer_GetEntityPublicKeys_ok(t *testing.T) {
 	rng := rand.New(rand.NewSource(0))
-	params := NewDefaultParameters()
+	params := storage.NewDefaultParameters()
 	lg := zap.NewNop()
 	pkds1 := api.NewTestPublicKeyDetails(rng, 8)
 	keys, spkds := toStoredMulti(pkds1)
@@ -122,7 +123,7 @@ func TestDatastoreStorer_GetEntityPublicKeys_ok(t *testing.T) {
 
 func TestDatastoreStorer_GetEntityPublicKeys_err(t *testing.T) {
 	rng := rand.New(rand.NewSource(0))
-	params := NewDefaultParameters()
+	params := storage.NewDefaultParameters()
 	lg := zap.NewNop()
 	s := &datastoreStorer{
 		params: params,
@@ -161,7 +162,7 @@ func TestDatastoreStorer_GetEntityPublicKeys_err(t *testing.T) {
 }
 
 func TestDatastoreStorer_CountEntityPublicKeys(t *testing.T) {
-	params := NewDefaultParameters()
+	params := storage.NewDefaultParameters()
 	lg := zap.NewNop()
 	count := 9
 	s := &datastoreStorer{
