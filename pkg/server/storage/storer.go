@@ -37,6 +37,7 @@ type Storer interface {
 	GetPublicKeys(pks [][]byte) ([]*api.PublicKeyDetail, error)
 	GetEntityPublicKeys(entityID string) ([]*api.PublicKeyDetail, error)
 	CountEntityPublicKeys(entityID string, kt api.KeyType) (int, error)
+	Close() error
 }
 
 // Parameters defines the parameters of the Storer.

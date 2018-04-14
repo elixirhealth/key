@@ -16,18 +16,18 @@ func TestGetKeyConfig(t *testing.T) {
 	profilerPort := uint(9012)
 	logLevel := zapcore.DebugLevel.String()
 	profile := true
-	gcpProjectID := "some project"
+	dbURL := "some URL"
 	storageInMemory := false
-	storageDataStore := true
+	storagePostgres := true
 
 	viper.Set(cmd.ServerPortFlag, serverPort)
 	viper.Set(cmd.MetricsPortFlag, metricsPort)
 	viper.Set(cmd.ProfilerPortFlag, profilerPort)
 	viper.Set(cmd.LogLevelFlag, logLevel)
 	viper.Set(cmd.ProfileFlag, profile)
-	viper.Set(gcpProjectIDFlag, gcpProjectID)
 	viper.Set(storageMemoryFlag, storageInMemory)
-	viper.Set(storageDataStoreFlag, storageDataStore)
+	viper.Set(storagePostgresFlag, storagePostgres)
+	viper.Set(dbURLFlag, dbURL)
 
 	c, err := getKeyConfig()
 	assert.Nil(t, err)
@@ -36,7 +36,7 @@ func TestGetKeyConfig(t *testing.T) {
 	assert.Equal(t, profilerPort, c.ProfilerPort)
 	assert.Equal(t, logLevel, c.LogLevel.String())
 	assert.Equal(t, profile, c.Profile)
-	assert.Equal(t, gcpProjectID, c.GCPProjectID)
-	assert.Equal(t, bstorage.DataStore, c.Storage.Type)
+	assert.Equal(t, dbURL, c.DBUrl)
+	assert.Equal(t, bstorage.Postgres, c.Storage.Type)
 
 }

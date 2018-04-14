@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"log"
 
 	errors2 "github.com/drausin/libri/libri/common/errors"
@@ -17,13 +18,14 @@ import (
 )
 
 const (
-	serviceNameLower     = "key"
-	serviceNameCamel     = "Key"
-	envVarPrefix         = "KEY"
-	logLevelFlag         = "logLevel"
-	storageMemoryFlag    = "storageMemory"
-	storageDataStoreFlag = "storageDataStore"
-	gcpProjectIDFlag     = "gcpProjectID"
+	serviceNameLower    = "key"
+	serviceNameCamel    = "Key"
+	envVarPrefix        = "KEY"
+	logLevelFlag        = "logLevel"
+	storageMemoryFlag   = "storageMemory"
+	dbURLFlag           = "dbURL"
+	dbPasswordFlag      = "dbPassword"
+	storagePostgresFlag = "storagePostgres"
 )
 
 var (
@@ -41,9 +43,10 @@ func init() {
 
 	cmd.Start(serviceNameLower, serviceNameCamel, rootCmd, version.Current, start,
 		func(flags *pflag.FlagSet) {
-			flags.Bool(storageMemoryFlag, true, "use in-memory storage")
-			flags.Bool(storageDataStoreFlag, false, "use GCP DataStore storage")
-			flags.String(gcpProjectIDFlag, "", "GCP project ID")
+			flags.Bool(storageMemoryFlag, false, "use in-memory storage")
+			flags.Bool(storagePostgresFlag, false, "use Postgres DB storage")
+			flags.String(dbURLFlag, "", "Postgres DB URL, including username")
+			flags.String(dbPasswordFlag, "", "DB user's password")
 		})
 
 	testCmd := cmd.Test(serviceNameLower, rootCmd)
@@ -87,19 +90,28 @@ func getKeyConfig() (*server.Config, error) {
 		return nil, err
 	}
 	c.Storage.Type = st
-	c.GCPProjectID = viper.GetString(gcpProjectIDFlag)
+	c.DBUrl = getDBUrl()
 	return c, nil
 }
 
+func getDBUrl() string {
+	dbURL := viper.GetString(dbURLFlag)
+	if dbPass := viper.GetString(dbPasswordFlag); dbPass != "" {
+		// append pw to URL args
+		return fmt.Sprintf("%s&password=%s", dbURL, dbPass)
+	}
+	return dbURL
+}
+
 func getStorageType() (bstorage.Type, error) {
-	if viper.GetBool(storageMemoryFlag) && viper.GetBool(storageDataStoreFlag) {
+	if viper.GetBool(storageMemoryFlag) && viper.GetBool(storagePostgresFlag) {
 		return bstorage.Unspecified, errMultipleStorageTypes
 	}
 	if viper.GetBool(storageMemoryFlag) {
 		return bstorage.Memory, nil
 	}
-	if viper.GetBool(storageDataStoreFlag) {
-		return bstorage.DataStore, nil
+	if viper.GetBool(storagePostgresFlag) {
+		return bstorage.Postgres, nil
 	}
 	return bstorage.Unspecified, errNoStorageType
 }

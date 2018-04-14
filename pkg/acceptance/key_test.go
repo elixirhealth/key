@@ -5,18 +5,19 @@ package acceptance
 import (
 	"context"
 	"encoding/hex"
-	"io/ioutil"
 	"math/rand"
 	"net"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/drausin/libri/libri/common/errors"
+	"github.com/drausin/libri/libri/common/logging"
 	api "github.com/elixirhealth/key/pkg/keyapi"
 	"github.com/elixirhealth/key/pkg/server"
 	"github.com/elixirhealth/key/pkg/server/storage"
+	"github.com/elixirhealth/key/pkg/server/storage/postgres/migrations"
 	bstorage "github.com/elixirhealth/service-base/pkg/server/storage"
+	"github.com/mattes/migrate/source/go-bindata"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
@@ -34,11 +35,11 @@ type parameters struct {
 }
 
 type state struct {
-	keys          []*server.Key
-	keyClients    []api.KeyClient
-	dataDir       string
-	datastoreProc *os.Process
-	rng           *rand.Rand
+	keys             []*server.Key
+	keyClients       []api.KeyClient
+	rng              *rand.Rand
+	dbURL            string
+	tearDownPostgres func() error
 
 	entityAuthorKeys  map[string][][]byte
 	entityReaderKeys  map[string][][]byte
@@ -61,7 +62,7 @@ func TestAcceptance(t *testing.T) {
 		nGets:        32,
 		timeout:      1 * time.Second,
 	}
-	st := setUp(params)
+	st := setUp(t, params)
 
 	testAdd(t, params, st)
 
@@ -71,7 +72,7 @@ func TestAcceptance(t *testing.T) {
 
 	testSample(t, params, st)
 
-	tearDown(st)
+	tearDown(t, st)
 }
 
 func testAdd(t *testing.T, params *parameters, st *state) {
@@ -171,18 +172,17 @@ func testSample(t *testing.T, params *parameters, st *state) {
 	}
 }
 
-func setUp(params *parameters) *state {
+func setUp(t *testing.T, params *parameters) *state {
 	rng := rand.New(rand.NewSource(0))
+	dbURL, cleanup, err := bstorage.StartTestPostgres()
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	dataDir, err := ioutil.TempDir("", "key-datastore-test")
-	errors.MaybePanic(err)
-	datastoreProc := bstorage.StartDatastoreEmulator(dataDir)
-
-	time.Sleep(5 * time.Second)
 	st := &state{
-		rng:           rng,
-		dataDir:       dataDir,
-		datastoreProc: datastoreProc,
+		rng:              rng,
+		dbURL:            dbURL,
+		tearDownPostgres: cleanup,
 
 		entityAuthorKeys:  make(map[string][][]byte),
 		entityReaderKeys:  make(map[string][][]byte),
@@ -194,7 +194,7 @@ func setUp(params *parameters) *state {
 }
 
 func createAndStartKeys(params *parameters, st *state) {
-	configs, addrs := newKeyConfigs(params)
+	configs, addrs := newKeyConfigs(params, st)
 	keys := make([]*server.Key, params.nKeys)
 	keyClients := make([]api.KeyClient, params.nKeys)
 	up := make(chan *server.Key, 1)
@@ -218,20 +218,20 @@ func createAndStartKeys(params *parameters, st *state) {
 	st.keyClients = keyClients
 }
 
-func newKeyConfigs(params *parameters) ([]*server.Config, []*net.TCPAddr) {
+func newKeyConfigs(params *parameters, st *state) ([]*server.Config, []*net.TCPAddr) {
 	startPort := uint(10100)
 	configs := make([]*server.Config, params.nKeys)
 	addrs := make([]*net.TCPAddr, params.nKeys)
 
 	// set eviction params to ensure that evictions actually happen during test
 	storageParams := storage.NewDefaultParameters()
-	storageParams.Type = bstorage.DataStore
+	storageParams.Type = bstorage.Postgres
 
 	for i := uint(0); i < params.nKeys; i++ {
 		serverPort, metricsPort := startPort+i*10, startPort+i*10+1
 		configs[i] = server.NewDefaultConfig().
 			WithStorage(storageParams).
-			WithGCPProjectID(params.gcpProjectID)
+			WithDBUrl(st.dbURL)
 		configs[i].WithServerPort(uint(serverPort)).
 			WithMetricsPort(uint(metricsPort)).
 			WithLogLevel(params.logLevel)
@@ -240,11 +240,19 @@ func newKeyConfigs(params *parameters) ([]*server.Config, []*net.TCPAddr) {
 	return configs, addrs
 }
 
-func tearDown(st *state) {
+func tearDown(t *testing.T, st *state) {
 	for _, c := range st.keys {
 		c.StopServer()
 	}
-	bstorage.StopDatastoreEmulator(st.datastoreProc)
-	err := os.RemoveAll(st.dataDir)
-	errors.MaybePanic(err)
+	logger := &bstorage.ZapLogger{Logger: logging.NewDevInfoLogger()}
+	m := bstorage.NewBindataMigrator(
+		st.dbURL,
+		bindata.Resource(migrations.AssetNames(), migrations.Asset),
+		logger,
+	)
+	err := m.Down()
+	assert.Nil(t, err)
+
+	err = st.tearDownPostgres()
+	assert.Nil(t, err)
 }

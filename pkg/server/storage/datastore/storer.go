@@ -31,7 +31,7 @@ type PublicKeyDetail struct {
 	DisabledTime time.Time      `datastore:"disabled_time,noindex"`
 }
 
-type datastoreStorer struct {
+type storer struct {
 	params *storage.Parameters
 	client bstorage.DatastoreClient
 	iter   bstorage.DatastoreIterator
@@ -46,7 +46,7 @@ func New(
 	if err != nil {
 		return nil, err
 	}
-	return &datastoreStorer{
+	return &storer{
 		params: params,
 		client: &bstorage.DatastoreClientImpl{Inner: client},
 		iter:   &bstorage.DatastoreIteratorImpl{},
@@ -54,7 +54,7 @@ func New(
 	}, nil
 }
 
-func (s *datastoreStorer) AddPublicKeys(pkds []*api.PublicKeyDetail) error {
+func (s *storer) AddPublicKeys(pkds []*api.PublicKeyDetail) error {
 	if err := api.ValidatePublicKeyDetails(pkds); err != nil {
 		return err
 	}
@@ -68,7 +68,7 @@ func (s *datastoreStorer) AddPublicKeys(pkds []*api.PublicKeyDetail) error {
 	return nil
 }
 
-func (s *datastoreStorer) GetPublicKeys(pks [][]byte) ([]*api.PublicKeyDetail, error) {
+func (s *storer) GetPublicKeys(pks [][]byte) ([]*api.PublicKeyDetail, error) {
 	if err := api.ValidatePublicKeys(pks); err != nil {
 		return nil, err
 	}
@@ -102,7 +102,7 @@ func firstMultiErrNotNil(err error) error {
 	return err
 }
 
-func (s *datastoreStorer) GetEntityPublicKeys(entityID string) ([]*api.PublicKeyDetail, error) {
+func (s *storer) GetEntityPublicKeys(entityID string) ([]*api.PublicKeyDetail, error) {
 	if entityID == "" {
 		return nil, api.ErrEmptyEntityID
 	}
@@ -131,13 +131,17 @@ func (s *datastoreStorer) GetEntityPublicKeys(entityID string) ([]*api.PublicKey
 	return pkds, nil
 }
 
-func (s *datastoreStorer) CountEntityPublicKeys(entityID string, kt api.KeyType) (int, error) {
+func (s *storer) CountEntityPublicKeys(entityID string, kt api.KeyType) (int, error) {
 	n, err := s.client.Count(context.Background(), getEntityPublicKeysQuery(entityID, kt))
 	if err != nil {
 		return 0, err
 	}
 	s.logger.Debug("counted public keys for entity", logCountEntityPubKeys(entityID, kt)...)
 	return n, nil
+}
+
+func (s *storer) Close() error {
+	return nil
 }
 
 func getEntityPublicKeysQuery(entityID string, kt api.KeyType) *datastore.Query {
