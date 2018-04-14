@@ -14,6 +14,7 @@ const (
 	logOfEntityID         = "of_entity_id"
 	logRequersterEntityID = "requester_entity_id"
 	logNPublicKeys        = "n_public_keys"
+	logErr                = "err"
 )
 
 func logAddPublicKeysRq(rq *api.AddPublicKeysRequest) []zapcore.Field {
