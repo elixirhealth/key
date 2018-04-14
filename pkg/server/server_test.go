@@ -302,3 +302,7 @@ func (f *fixedStorer) AddPublicKeys(pkds []*api.PublicKeyDetail) error {
 func (f *fixedStorer) GetPublicKeys(pks [][]byte) ([]*api.PublicKeyDetail, error) {
 	return f.getPKDs, f.getErr
 }
+
+func (f *fixedStorer) Close() error {
+	return nil
+}

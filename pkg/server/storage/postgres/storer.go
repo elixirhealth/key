@@ -174,6 +174,10 @@ func (s *storer) getPKDsFromQuery(q sq.SelectBuilder, size int) ([]*api.PublicKe
 	return pkds[:i], nil
 }
 
+func (s *storer) Close() error {
+	return s.db.Close()
+}
+
 func orderPKDs(pkds []*api.PublicKeyDetail, byPKs [][]byte) []*api.PublicKeyDetail {
 	pkdsMap := make(map[string]*api.PublicKeyDetail)
 	for _, pkd := range pkds {

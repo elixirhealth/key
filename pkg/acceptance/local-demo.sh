@@ -36,7 +36,8 @@ name="key-0"
 docker run --name "${name}" --net=key -d -p ${port}:${port} ${KEY_IMAGE} \
     start \
     --logLevel "${KEY_LOG_LEVEL}" \
-    --serverPort ${port}
+    --serverPort ${port} \
+    --storageMemory
 key_addrs="${name}:${port}"
 key_containers="${name}"
 

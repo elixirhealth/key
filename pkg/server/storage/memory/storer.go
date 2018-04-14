@@ -9,7 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
-type memoryStorer struct {
+type storer struct {
 	pkds   map[string]*api.PublicKeyDetail
 	mu     sync.Mutex
 	params *storage.Parameters
@@ -18,14 +18,14 @@ type memoryStorer struct {
 
 // New creates a new Storer backed by an in-memory map.
 func New(params *storage.Parameters, logger *zap.Logger) storage.Storer {
-	return &memoryStorer{
+	return &storer{
 		pkds:   make(map[string]*api.PublicKeyDetail),
 		params: params,
 		logger: logger,
 	}
 }
 
-func (s *memoryStorer) AddPublicKeys(pkds []*api.PublicKeyDetail) error {
+func (s *storer) AddPublicKeys(pkds []*api.PublicKeyDetail) error {
 	if err := api.ValidatePublicKeyDetails(pkds); err != nil {
 		return err
 	}
@@ -39,7 +39,7 @@ func (s *memoryStorer) AddPublicKeys(pkds []*api.PublicKeyDetail) error {
 	return nil
 }
 
-func (s *memoryStorer) GetPublicKeys(pks [][]byte) ([]*api.PublicKeyDetail, error) {
+func (s *storer) GetPublicKeys(pks [][]byte) ([]*api.PublicKeyDetail, error) {
 	if err := api.ValidatePublicKeys(pks); err != nil {
 		return nil, err
 	}
@@ -59,7 +59,7 @@ func (s *memoryStorer) GetPublicKeys(pks [][]byte) ([]*api.PublicKeyDetail, erro
 	return pkds, nil
 }
 
-func (s *memoryStorer) GetEntityPublicKeys(entityID string) ([]*api.PublicKeyDetail, error) {
+func (s *storer) GetEntityPublicKeys(entityID string) ([]*api.PublicKeyDetail, error) {
 	if entityID == "" {
 		return nil, api.ErrEmptyEntityID
 	}
@@ -75,7 +75,7 @@ func (s *memoryStorer) GetEntityPublicKeys(entityID string) ([]*api.PublicKeyDet
 	return pkds, nil
 }
 
-func (s *memoryStorer) CountEntityPublicKeys(entityID string, kt api.KeyType) (int, error) {
+func (s *storer) CountEntityPublicKeys(entityID string, kt api.KeyType) (int, error) {
 	if entityID == "" {
 		return 0, api.ErrEmptyEntityID
 	}
@@ -89,4 +89,8 @@ func (s *memoryStorer) CountEntityPublicKeys(entityID string, kt api.KeyType) (i
 	}
 	s.logger.Debug("counted public keys for entity", logCountEntityPubKeys(entityID, kt)...)
 	return c, nil
+}
+
+func (s *storer) Close() error {
+	return nil
 }

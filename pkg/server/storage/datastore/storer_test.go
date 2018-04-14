@@ -22,7 +22,7 @@ func TestDatastoreStorer_AddGetPublicKeys_ok(t *testing.T) {
 	rng := rand.New(rand.NewSource(0))
 	params := storage.NewDefaultParameters()
 	lg := zap.NewNop()
-	s := &datastoreStorer{
+	s := &storer{
 		params: params,
 		client: &fixedDatastoreClient{
 			publicKey: make(map[string]*PublicKeyDetail),
@@ -47,7 +47,7 @@ func TestDatastoreStorer_AddPublicKeys_err(t *testing.T) {
 	rng := rand.New(rand.NewSource(0))
 	params := storage.NewDefaultParameters()
 	lg := zap.NewNop()
-	s := &datastoreStorer{
+	s := &storer{
 		params: params,
 		client: &fixedDatastoreClient{
 			putMultiErr: errTest,
@@ -69,7 +69,7 @@ func TestDatastoreStorer_GetPublicKeys_err(t *testing.T) {
 	rng := rand.New(rand.NewSource(0))
 	params := storage.NewDefaultParameters()
 	lg := zap.NewNop()
-	s := &datastoreStorer{
+	s := &storer{
 		params: params,
 		client: &fixedDatastoreClient{},
 		logger: lg,
@@ -106,7 +106,7 @@ func TestDatastoreStorer_GetEntityPublicKeys_ok(t *testing.T) {
 	lg := zap.NewNop()
 	pkds1 := api.NewTestPublicKeyDetails(rng, 8)
 	keys, spkds := toStoredMulti(pkds1)
-	s := &datastoreStorer{
+	s := &storer{
 		params: params,
 		client: &fixedDatastoreClient{},
 		iter: &fixedDatastoreIter{
@@ -125,7 +125,7 @@ func TestDatastoreStorer_GetEntityPublicKeys_err(t *testing.T) {
 	rng := rand.New(rand.NewSource(0))
 	params := storage.NewDefaultParameters()
 	lg := zap.NewNop()
-	s := &datastoreStorer{
+	s := &storer{
 		params: params,
 		client: &fixedDatastoreClient{},
 		iter: &fixedDatastoreIter{
@@ -147,7 +147,7 @@ func TestDatastoreStorer_GetEntityPublicKeys_err(t *testing.T) {
 	// bad stored value
 	badKeys, badSpkds := toStoredMulti(api.NewTestPublicKeyDetails(rng, 1))
 	badSpkds[0].PublicKey = datastore.NameKey(publicKeyKind, "*", nil)
-	s = &datastoreStorer{
+	s = &storer{
 		params: params,
 		client: &fixedDatastoreClient{},
 		iter: &fixedDatastoreIter{
@@ -165,7 +165,7 @@ func TestDatastoreStorer_CountEntityPublicKeys(t *testing.T) {
 	params := storage.NewDefaultParameters()
 	lg := zap.NewNop()
 	count := 9
-	s := &datastoreStorer{
+	s := &storer{
 		params: params,
 		client: &fixedDatastoreClient{
 			countValue: count,
@@ -179,7 +179,7 @@ func TestDatastoreStorer_CountEntityPublicKeys(t *testing.T) {
 	assert.Equal(t, count, val)
 
 	// query err
-	s = &datastoreStorer{
+	s = &storer{
 		params: params,
 		client: &fixedDatastoreClient{
 			countErr: errTest,
