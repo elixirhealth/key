@@ -1,4 +1,4 @@
-package storage
+package datastore
 
 import (
 	"context"
@@ -7,16 +7,13 @@ import (
 
 	"cloud.google.com/go/datastore"
 	api "github.com/elixirhealth/key/pkg/keyapi"
+	"github.com/elixirhealth/key/pkg/server/storage"
 	bstorage "github.com/elixirhealth/service-base/pkg/server/storage"
 	"go.uber.org/zap"
 	"google.golang.org/api/iterator"
 )
 
 const (
-	// MaxEntityKeyTypeKeys indicates the maximum number of public keys an entity can have for
-	// a given key type.
-	MaxEntityKeyTypeKeys = 256
-
 	publicKeyKind = "public_key"
 
 	secsPerDay = int64(3600 * 24 * 24)
@@ -35,14 +32,16 @@ type PublicKeyDetail struct {
 }
 
 type datastoreStorer struct {
-	params *Parameters
+	params *storage.Parameters
 	client bstorage.DatastoreClient
 	iter   bstorage.DatastoreIterator
 	logger *zap.Logger
 }
 
-// NewDatastore creates a new Storer backed by a GCP DataStore instance.
-func NewDatastore(gcpProjectID string, params *Parameters, logger *zap.Logger) (Storer, error) {
+// New creates a new Storer backed by a GCP DataStore instance.
+func New(
+	gcpProjectID string, params *storage.Parameters, logger *zap.Logger,
+) (storage.Storer, error) {
 	client, err := datastore.NewClient(context.Background(), gcpProjectID)
 	if err != nil {
 		return nil, err
@@ -107,12 +106,13 @@ func (s *datastoreStorer) GetEntityPublicKeys(entityID string) ([]*api.PublicKey
 	if entityID == "" {
 		return nil, api.ErrEmptyEntityID
 	}
-	q := getEntityPublicKeysQuery(entityID, api.KeyType_READER).Limit(MaxEntityKeyTypeKeys)
+	q := getEntityPublicKeysQuery(entityID, api.KeyType_READER).
+		Limit(storage.MaxEntityKeyTypeKeys)
 	ctx, cancel := context.WithTimeout(context.Background(), s.params.GetEntityQueryTimeout)
 	defer cancel()
 	iter := s.client.Run(ctx, q)
 	s.iter.Init(iter)
-	pkds := make([]*api.PublicKeyDetail, 0, MaxEntityKeyTypeKeys)
+	pkds := make([]*api.PublicKeyDetail, 0, storage.MaxEntityKeyTypeKeys)
 	for {
 		spkd := &PublicKeyDetail{}
 		if _, err := s.iter.Next(spkd); err == iterator.Done {

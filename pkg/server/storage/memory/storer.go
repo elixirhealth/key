@@ -1,22 +1,23 @@
-package storage
+package memory
 
 import (
 	"encoding/hex"
 	"sync"
 
 	api "github.com/elixirhealth/key/pkg/keyapi"
+	"github.com/elixirhealth/key/pkg/server/storage"
 	"go.uber.org/zap"
 )
 
 type memoryStorer struct {
 	pkds   map[string]*api.PublicKeyDetail
 	mu     sync.Mutex
-	params *Parameters
+	params *storage.Parameters
 	logger *zap.Logger
 }
 
-// NewMemoryStorer creates a new Storer backed by an in-memory map.
-func NewMemoryStorer(params *Parameters, logger *zap.Logger) Storer {
+// New creates a new Storer backed by an in-memory map.
+func New(params *storage.Parameters, logger *zap.Logger) storage.Storer {
 	return &memoryStorer{
 		pkds:   make(map[string]*api.PublicKeyDetail),
 		params: params,
@@ -64,7 +65,7 @@ func (s *memoryStorer) GetEntityPublicKeys(entityID string) ([]*api.PublicKeyDet
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	pkds := make([]*api.PublicKeyDetail, 0, MaxEntityKeyTypeKeys)
+	pkds := make([]*api.PublicKeyDetail, 0, storage.MaxEntityKeyTypeKeys)
 	for _, pkd := range s.pkds {
 		if pkd.EntityId == entityID && pkd.KeyType == api.KeyType_READER {
 			pkds = append(pkds, pkd)
