@@ -5,6 +5,7 @@ import (
 
 	api "github.com/elixirhealth/key/pkg/keyapi"
 	bstorage "github.com/elixirhealth/service-base/pkg/server/storage"
+	"github.com/pkg/errors"
 	"go.uber.org/zap/zapcore"
 )
 
@@ -21,6 +22,13 @@ const (
 
 	// DefaultQueryTimeout is the default timeout for DataStore queries.
 	DefaultQueryTimeout = 1 * time.Second
+)
+
+var (
+	// ErrMaxBatchSizeExceeded indicates when the number of public keys an in an add or get
+	// request ot the storer exceeds the maximum size.
+	ErrMaxBatchSizeExceeded = errors.New("number of public keys in request exceeeds max " +
+		"batch size")
 )
 
 // Storer manages public key details.
