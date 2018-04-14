@@ -35,7 +35,7 @@ var (
 type Storer interface {
 	AddPublicKeys(pkds []*api.PublicKeyDetail) error
 	GetPublicKeys(pks [][]byte) ([]*api.PublicKeyDetail, error)
-	GetEntityPublicKeys(entityID string) ([]*api.PublicKeyDetail, error)
+	GetEntityPublicKeys(entityID string, kt api.KeyType) ([]*api.PublicKeyDetail, error)
 	CountEntityPublicKeys(entityID string, kt api.KeyType) (int, error)
 	Close() error
 }

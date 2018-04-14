@@ -102,11 +102,13 @@ func firstMultiErrNotNil(err error) error {
 	return err
 }
 
-func (s *storer) GetEntityPublicKeys(entityID string) ([]*api.PublicKeyDetail, error) {
+func (s *storer) GetEntityPublicKeys(
+	entityID string, kt api.KeyType,
+) ([]*api.PublicKeyDetail, error) {
 	if entityID == "" {
 		return nil, api.ErrEmptyEntityID
 	}
-	q := getEntityPublicKeysQuery(entityID, api.KeyType_READER).
+	q := getEntityPublicKeysQuery(entityID, kt).
 		Limit(storage.MaxEntityKeyTypeKeys)
 	ctx, cancel := context.WithTimeout(context.Background(), s.params.GetEntityQueryTimeout)
 	defer cancel()

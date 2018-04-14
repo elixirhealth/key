@@ -70,7 +70,7 @@ func TestMemoryStorer_GetEntityPublicKeys_ok(t *testing.T) {
 	err := s.AddPublicKeys(pkds1)
 	assert.Nil(t, err)
 
-	pkds2, err := s.GetEntityPublicKeys(pkds1[0].EntityId)
+	pkds2, err := s.GetEntityPublicKeys(pkds1[0].EntityId, api.KeyType_READER)
 	assert.Nil(t, err)
 	expectedN := 0
 	for _, pkd1 := range pkds1 {
@@ -86,7 +86,7 @@ func TestMemoryStorer_GetEntityPublicKeys_err(t *testing.T) {
 	lg := zap.NewNop()
 	s := New(params, lg)
 
-	pkds, err := s.GetEntityPublicKeys("")
+	pkds, err := s.GetEntityPublicKeys("", api.KeyType_READER)
 	assert.Equal(t, api.ErrEmptyEntityID, err)
 	assert.Nil(t, pkds)
 }

@@ -59,7 +59,7 @@ func (s *storer) GetPublicKeys(pks [][]byte) ([]*api.PublicKeyDetail, error) {
 	return pkds, nil
 }
 
-func (s *storer) GetEntityPublicKeys(entityID string) ([]*api.PublicKeyDetail, error) {
+func (s *storer) GetEntityPublicKeys(entityID string, kt api.KeyType) ([]*api.PublicKeyDetail, error) {
 	if entityID == "" {
 		return nil, api.ErrEmptyEntityID
 	}
@@ -67,7 +67,7 @@ func (s *storer) GetEntityPublicKeys(entityID string) ([]*api.PublicKeyDetail, e
 	defer s.mu.Unlock()
 	pkds := make([]*api.PublicKeyDetail, 0, storage.MaxEntityKeyTypeKeys)
 	for _, pkd := range s.pkds {
-		if pkd.EntityId == entityID && pkd.KeyType == api.KeyType_READER {
+		if pkd.EntityId == entityID && pkd.KeyType == kt {
 			pkds = append(pkds, pkd)
 		}
 	}

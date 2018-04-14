@@ -291,7 +291,9 @@ func (f *fixedStorer) CountEntityPublicKeys(entityID string, kt api.KeyType) (in
 	return f.countEntityPKsValue, f.countEntityPKsErr
 }
 
-func (f *fixedStorer) GetEntityPublicKeys(entityID string) ([]*api.PublicKeyDetail, error) {
+func (f *fixedStorer) GetEntityPublicKeys(
+	entityID string, kt api.KeyType,
+) ([]*api.PublicKeyDetail, error) {
 	return f.getEntityPKs, f.getEntityPKsErr
 }
 

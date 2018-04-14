@@ -106,7 +106,7 @@ func (s *storer) GetPublicKeys(pks [][]byte) ([]*api.PublicKeyDetail, error) {
 	return orderPKDs(pkds, pks), nil
 }
 
-func (s *storer) GetEntityPublicKeys(entityID string) ([]*api.PublicKeyDetail, error) {
+func (s *storer) GetEntityPublicKeys(entityID string, kt api.KeyType) ([]*api.PublicKeyDetail, error) {
 	if entityID == "" {
 		return nil, api.ErrEmptyEntityID
 	}
@@ -114,7 +114,7 @@ func (s *storer) GetEntityPublicKeys(entityID string) ([]*api.PublicKeyDetail, e
 	q := psql.RunWith(s.dbCache).
 		Select(cols...).
 		From(fqPublicKeyDetailTable).
-		Where(sq.Eq{entityIDCol: entityID, keyTypeCol: api.KeyType_READER.String()})
+		Where(sq.Eq{entityIDCol: entityID, keyTypeCol: kt.String()})
 	s.logger.Debug("getting entity public keys from storage",
 		logGettingEntityPubKeys(q, entityID)...)
 	pkds, err := s.getPKDsFromQuery(q, storage.MaxEntityKeyTypeKeys)
