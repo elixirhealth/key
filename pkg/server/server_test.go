@@ -72,41 +72,46 @@ func TestKey_AddPublicKeys_err(t *testing.T) {
 		},
 	}
 	cases := map[string]struct {
-		k  *Key
-		rq *api.AddPublicKeysRequest
+		k        *Key
+		rq       *api.AddPublicKeysRequest
+		expected error
 	}{
 		"bad request": {
 			k: &Key{
 				BaseServer: baseServer,
 				storer:     &fixedStorer{},
 			},
-			rq: &api.AddPublicKeysRequest{},
+			rq:       &api.AddPublicKeysRequest{},
+			expected: status.Error(codes.InvalidArgument, api.ErrEmptyEntityID.Error()),
 		},
 		"storer get count error": {
 			k: &Key{
 				BaseServer: baseServer,
 				storer:     &fixedStorer{countEntityPKsErr: errTest},
 			},
-			rq: okRq,
+			rq:       okRq,
+			expected: ErrInternal,
 		},
 		"too many added": {
 			k: &Key{
 				BaseServer: baseServer,
 				storer:     &fixedStorer{countEntityPKsValue: 255},
 			},
-			rq: okRq,
+			rq:       okRq,
+			expected: ErrTooManyActivePublicKeys,
 		},
 		"storer add error": {
 			k: &Key{
 				BaseServer: baseServer,
 				storer:     &fixedStorer{addErr: errTest},
 			},
-			rq: okRq,
+			rq:       okRq,
+			expected: ErrInternal,
 		},
 	}
 	for desc, c := range cases {
 		rp, err := c.k.AddPublicKeys(context.Background(), c.rq)
-		assert.NotNil(t, err, desc)
+		assert.Equal(t, c.expected, err, desc)
 		assert.Nil(t, rp, desc)
 	}
 }
@@ -142,7 +147,7 @@ func TestKey_GetPublicKeys_err(t *testing.T) {
 	// storer error
 	rq = &api.GetPublicKeysRequest{EntityId: "some entity ID"}
 	rp, err = k.GetPublicKeys(context.Background(), rq)
-	assert.Equal(t, errTest, err)
+	assert.Equal(t, ErrInternal, err)
 	assert.Nil(t, rp)
 }
 
@@ -186,7 +191,7 @@ func TestKey_GetPublicKeyDetails_err(t *testing.T) {
 		},
 	}
 	rp, err = k.GetPublicKeyDetails(context.Background(), rq)
-	assert.Equal(t, errTest, err)
+	assert.Equal(t, ErrInternal, err)
 	assert.Nil(t, rp)
 
 	// no such pub key
@@ -273,7 +278,7 @@ func TestKey_SamplePublicKeys_err(t *testing.T) {
 		RequesterEntityId: rqEntityID,
 	}
 	rp, err = k.SamplePublicKeys(context.Background(), rq)
-	assert.Equal(t, errTest, err)
+	assert.Equal(t, ErrInternal, err)
 	assert.Nil(t, rp)
 }
 
