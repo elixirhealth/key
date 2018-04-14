@@ -176,8 +176,38 @@ func TestStorer_GetPublicKeys_err(t *testing.T) {
 	}
 }
 
-func TestStorer_GetEntityPublicKeys(t *testing.T) {
+func TestStorer_GetCountEntityPublicKeys_ok(t *testing.T) {
+	dbURL, tearDown := setUpPostgresTest()
+	defer func() {
+		err := tearDown()
+		assert.Nil(t, err)
+	}()
 
+	rng := rand.New(rand.NewSource(0))
+	params := storage.NewDefaultParameters()
+	params.Type = bstorage.Postgres
+	lg := logging.NewDevLogger(zap.DebugLevel)
+	pkds1 := api.NewTestPublicKeyDetails(rng, 64)
+
+	s, err := New(dbURL, params, lg)
+	assert.Nil(t, err)
+
+	err = s.AddPublicKeys(pkds1)
+	assert.Nil(t, err)
+
+	entityID := pkds1[0].EntityId
+	pkds2, err := s.GetEntityPublicKeys(entityID)
+	assert.Nil(t, err)
+	assert.True(t, len(pkds2) > 1)
+	for _, pkd := range pkds2 {
+		assert.Equal(t, entityID, pkd.EntityId)
+		assert.Equal(t, api.KeyType_READER, pkd.KeyType)
+		assert.NotEmpty(t, pkd.PublicKey)
+	}
+
+	n, err := s.CountEntityPublicKeys(entityID, api.KeyType_READER)
+	assert.Nil(t, err)
+	assert.Equal(t, len(pkds2), n)
 }
 
 type fixedQuerier struct {

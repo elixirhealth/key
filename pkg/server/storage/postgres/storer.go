@@ -114,7 +114,7 @@ func (s *storer) GetEntityPublicKeys(entityID string) ([]*api.PublicKeyDetail, e
 	q := psql.RunWith(s.dbCache).
 		Select(cols...).
 		From(fqPublicKeyDetailTable).
-		Where(sq.Eq{entityIDCol: entityID})
+		Where(sq.Eq{entityIDCol: entityID, keyTypeCol: api.KeyType_READER.String()})
 	s.logger.Debug("getting entity public keys from storage",
 		logGettingEntityPubKeys(q, entityID)...)
 	pkds, err := s.getPKDsFromQuery(q, storage.MaxEntityKeyTypeKeys)
@@ -135,7 +135,7 @@ func (s *storer) CountEntityPublicKeys(entityID string, kt api.KeyType) (int, er
 		From(fqPublicKeyDetailTable).
 		Where(sq.Eq{
 			entityIDCol: entityID,
-			keyTypeCol:  kt,
+			keyTypeCol:  kt.String(),
 		})
 	s.logger.Debug("counting public keys for entity",
 		logCountingEntityPubKeys(q, entityID, kt)...)
@@ -146,7 +146,8 @@ func (s *storer) CountEntityPublicKeys(entityID string, kt api.KeyType) (int, er
 	if err := row.Scan(&count); err != nil {
 		return 0, err
 	}
-	s.logger.Debug("counted public keys for entity", logCountEntityPubKeys(entityID, kt)...)
+	s.logger.Debug("counted public keys for entity",
+		logCountEntityPubKeys(entityID, kt, count)...)
 	return count, nil
 }
 
@@ -198,7 +199,7 @@ var pkdSQLCols = []string{
 func getPKDSQLValues(pkd *api.PublicKeyDetail) []interface{} {
 	return []interface{}{
 		pkd.PublicKey,
-		pkd.KeyType,
+		pkd.KeyType.String(),
 		pkd.EntityId,
 	}
 }

@@ -10,11 +10,11 @@ import (
 
 const (
 	logNPublicKeys = "n_public_keys"
-	logNInserted   = "n_inserted"
 	logEntityID    = "entity_id"
 	logKeyType     = "key_type"
 	logSQL         = "sql"
 	logArgs        = "args"
+	logCount       = "count"
 )
 
 func logAddingPublicKeys(q sq.InsertBuilder, pkds []*api.PublicKeyDetail) []zapcore.Field {
@@ -71,10 +71,11 @@ func logCountingEntityPubKeys(q sq.SelectBuilder, entityID string, kt api.KeyTyp
 	}
 }
 
-func logCountEntityPubKeys(entityID string, kt api.KeyType) []zapcore.Field {
+func logCountEntityPubKeys(entityID string, kt api.KeyType, count int) []zapcore.Field {
 	return []zapcore.Field{
 		zap.String(logEntityID, entityID),
 		zap.Stringer(logKeyType, kt),
+		zap.Int(logCount, count),
 	}
 }
 
