@@ -7,7 +7,7 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/Masterminds/squirrel"
+	sq "github.com/Masterminds/squirrel"
 	errors2 "github.com/drausin/libri/libri/common/errors"
 	"github.com/drausin/libri/libri/common/logging"
 	api "github.com/elixirhealth/key/pkg/keyapi"
@@ -146,7 +146,7 @@ func TestStorer_GetPublicKeys_err(t *testing.T) {
 				params: params,
 				logger: lg,
 				qr: &fixedQuerier{
-					selectRows: &fixedRowScanner{
+					selectResult: &fixedRowScanner{
 						next:    true,
 						scanErr: errTest,
 					},
@@ -160,7 +160,7 @@ func TestStorer_GetPublicKeys_err(t *testing.T) {
 				params: params,
 				logger: lg,
 				qr: &fixedQuerier{
-					selectRows: &fixedRowScanner{
+					selectResult: &fixedRowScanner{
 						errErr: errTest,
 					},
 				},
@@ -210,30 +210,140 @@ func TestStorer_GetCountEntityPublicKeys_ok(t *testing.T) {
 	assert.Equal(t, len(pkds2), n)
 }
 
+func TestStorer_GetEntityPublicKeys_err(t *testing.T) {
+	params := storage.NewDefaultParameters()
+	params.Type = bstorage.Postgres
+	lg := logging.NewDevLogger(zap.DebugLevel)
+	entityID := "some entity ID"
+
+	cases := map[string]struct {
+		s        *storer
+		entityID string
+		expected error
+	}{
+		"bad entityID": {
+			s:        &storer{params: params},
+			entityID: "",
+			expected: api.ErrEmptyEntityID,
+		},
+		"select err": {
+			s: &storer{
+				params: params,
+				logger: lg,
+				qr: &fixedQuerier{
+					selectErr: errTest,
+				},
+			},
+			entityID: entityID,
+			expected: errTest,
+		},
+		"rows scan err": {
+			s: &storer{
+				params: params,
+				logger: lg,
+				qr: &fixedQuerier{
+					selectResult: &fixedRowScanner{
+						next:    true,
+						scanErr: errTest,
+					},
+				},
+			},
+			entityID: entityID,
+			expected: errTest,
+		},
+		"rows err err": {
+			s: &storer{
+				params: params,
+				logger: lg,
+				qr: &fixedQuerier{
+					selectResult: &fixedRowScanner{
+						errErr: errTest,
+					},
+				},
+			},
+			entityID: entityID,
+			expected: errTest,
+		},
+	}
+	for desc, c := range cases {
+		pkds, err := c.s.GetEntityPublicKeys(c.entityID)
+		assert.Equal(t, c.expected, err, desc)
+		assert.Nil(t, pkds)
+	}
+}
+
+func TestStorer_CountEntityPublicKeys_err(t *testing.T) {
+	params := storage.NewDefaultParameters()
+	params.Type = bstorage.Postgres
+	lg := logging.NewDevLogger(zap.DebugLevel)
+	entityID := "some entity ID"
+
+	cases := map[string]struct {
+		s        *storer
+		entityID string
+		expected error
+	}{
+		"bad entityID": {
+			s:        &storer{params: params},
+			entityID: "",
+			expected: api.ErrEmptyEntityID,
+		},
+		"select row err": {
+			s: &storer{
+				params: params,
+				logger: lg,
+				qr: &fixedQuerier{
+					selectRowResult: &fixedRowScanner{
+						scanErr: errTest,
+					},
+				},
+			},
+			entityID: entityID,
+			expected: errTest,
+		},
+	}
+	for desc, c := range cases {
+		pkds, err := c.s.CountEntityPublicKeys(c.entityID, api.KeyType_READER)
+		assert.Equal(t, c.expected, err, desc)
+		assert.Zero(t, pkds)
+	}
+}
+
 type fixedQuerier struct {
-	selectRows   bstorage.QueryRows
-	selectErr    error
-	insertResult sql.Result
-	insertErr    error
+	selectResult    bstorage.QueryRows
+	selectErr       error
+	selectRowResult sq.RowScanner
+	insertResult    sql.Result
+	insertErr       error
 }
 
-func (f *fixedQuerier) SelectQueryContext(ctx context.Context, b squirrel.SelectBuilder) (bstorage.QueryRows, error) {
-	return f.selectRows, f.selectErr
+func (f *fixedQuerier) SelectQueryContext(
+	ctx context.Context, b sq.SelectBuilder,
+) (bstorage.QueryRows, error) {
+	return f.selectResult, f.selectErr
 }
 
-func (f *fixedQuerier) SelectQueryRowContext(ctx context.Context, b squirrel.SelectBuilder) squirrel.RowScanner {
-	panic("implement me")
+func (f *fixedQuerier) SelectQueryRowContext(
+	ctx context.Context, b sq.SelectBuilder,
+) sq.RowScanner {
+	return f.selectRowResult
 }
 
-func (f *fixedQuerier) InsertExecContext(ctx context.Context, b squirrel.InsertBuilder) (sql.Result, error) {
+func (f *fixedQuerier) InsertExecContext(
+	ctx context.Context, b sq.InsertBuilder,
+) (sql.Result, error) {
 	return f.insertResult, f.insertErr
 }
 
-func (f *fixedQuerier) UpdateExecContext(ctx context.Context, b squirrel.UpdateBuilder) (sql.Result, error) {
+func (f *fixedQuerier) UpdateExecContext(
+	ctx context.Context, b sq.UpdateBuilder,
+) (sql.Result, error) {
 	panic("implement me")
 }
 
-func (f *fixedQuerier) DeleteExecContext(ctx context.Context, b squirrel.DeleteBuilder) (sql.Result, error) {
+func (f *fixedQuerier) DeleteExecContext(
+	ctx context.Context, b sq.DeleteBuilder,
+) (sql.Result, error) {
 	panic("implement me")
 }
 
