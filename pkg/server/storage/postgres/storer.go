@@ -106,7 +106,9 @@ func (s *storer) GetPublicKeys(pks [][]byte) ([]*api.PublicKeyDetail, error) {
 	return orderPKDs(pkds, pks), nil
 }
 
-func (s *storer) GetEntityPublicKeys(entityID string, kt api.KeyType) ([]*api.PublicKeyDetail, error) {
+func (s *storer) GetEntityPublicKeys(
+	entityID string, kt api.KeyType,
+) ([]*api.PublicKeyDetail, error) {
 	if entityID == "" {
 		return nil, api.ErrEmptyEntityID
 	}
