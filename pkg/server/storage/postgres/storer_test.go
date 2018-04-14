@@ -196,7 +196,7 @@ func TestStorer_GetCountEntityPublicKeys_ok(t *testing.T) {
 	assert.Nil(t, err)
 
 	entityID := pkds1[0].EntityId
-	pkds2, err := s.GetEntityPublicKeys(entityID)
+	pkds2, err := s.GetEntityPublicKeys(entityID, api.KeyType_READER)
 	assert.Nil(t, err)
 	assert.True(t, len(pkds2) > 1)
 	for _, pkd := range pkds2 {
@@ -266,7 +266,7 @@ func TestStorer_GetEntityPublicKeys_err(t *testing.T) {
 		},
 	}
 	for desc, c := range cases {
-		pkds, err := c.s.GetEntityPublicKeys(c.entityID)
+		pkds, err := c.s.GetEntityPublicKeys(c.entityID, api.KeyType_READER)
 		assert.Equal(t, c.expected, err, desc)
 		assert.Nil(t, pkds)
 	}

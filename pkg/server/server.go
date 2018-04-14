@@ -72,7 +72,7 @@ func (k *Key) GetPublicKeys(
 	if err := api.ValidateGetPublicKeysRequest(rq); err != nil {
 		return nil, err
 	}
-	pkds, err := k.storer.GetEntityPublicKeys(rq.EntityId)
+	pkds, err := k.storer.GetEntityPublicKeys(rq.EntityId, rq.KeyType)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +115,7 @@ func (k *Key) SamplePublicKeys(
 	if err := api.ValidateSamplePublicKeysRequest(rq); err != nil {
 		return nil, err
 	}
-	allPKDs, err := k.storer.GetEntityPublicKeys(rq.OfEntityId)
+	allPKDs, err := k.storer.GetEntityPublicKeys(rq.OfEntityId, api.KeyType_READER)
 	if err != nil {
 		return nil, err
 	}

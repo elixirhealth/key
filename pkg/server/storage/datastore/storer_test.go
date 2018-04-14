@@ -116,7 +116,7 @@ func TestDatastoreStorer_GetEntityPublicKeys_ok(t *testing.T) {
 		logger: lg,
 	}
 
-	pkds2, err := s.GetEntityPublicKeys("some entity ID")
+	pkds2, err := s.GetEntityPublicKeys("some entity ID", api.KeyType_READER)
 	assert.Nil(t, err)
 	assert.Equal(t, pkds1, pkds2)
 }
@@ -135,12 +135,12 @@ func TestDatastoreStorer_GetEntityPublicKeys_err(t *testing.T) {
 	}
 
 	// empty entity ID
-	pkds, err := s.GetEntityPublicKeys("")
+	pkds, err := s.GetEntityPublicKeys("", api.KeyType_READER)
 	assert.Equal(t, api.ErrEmptyEntityID, err)
 	assert.Nil(t, pkds)
 
 	// next error
-	pkds, err = s.GetEntityPublicKeys("some entity ID")
+	pkds, err = s.GetEntityPublicKeys("some entity ID", api.KeyType_READER)
 	assert.Equal(t, errTest, err)
 	assert.Nil(t, pkds)
 
@@ -156,7 +156,7 @@ func TestDatastoreStorer_GetEntityPublicKeys_err(t *testing.T) {
 		},
 		logger: lg,
 	}
-	pkds, err = s.GetEntityPublicKeys("some entity ID")
+	pkds, err = s.GetEntityPublicKeys("some entity ID", api.KeyType_READER)
 	assert.NotNil(t, err)
 	assert.Nil(t, pkds)
 }
